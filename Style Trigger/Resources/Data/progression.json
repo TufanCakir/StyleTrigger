@@ -1,11 +1,11 @@
 {
-    "storyChapterCount": 8,
+    "storyChapterCount": 10,
     "expPerLevel": 1000,
     "modes": [
         {
             "id": "story",
             "description":
-                "Eight skill-focused battles with fixed encounter rules.",
+                "Ten skill-focused battles with fixed encounter rules.",
             "unlockedByDefault": true,
             "unlockAfterStoryChapter": null,
             "matchDuration": 120
@@ -18,6 +18,14 @@
             "matchDuration": 90
         },
         {
+            "id": "training",
+            "description":
+                "Infinite practice with immortal fighters and live combo feedback.",
+            "unlockedByDefault": true,
+            "unlockAfterStoryChapter": null,
+            "matchDuration": 3600
+        },
+        {
             "id": "survival",
             "description":
                 "Endless waves with rising speed, aggression, and numbers.",
@@ -28,7 +36,7 @@
         {
             "id": "versus",
             "description":
-                "Real-time Game Center combat from one-versus-one to four-versus-four.",
+                "Fight configurable bots locally or challenge players through Game Center.",
             "unlockedByDefault": true,
             "unlockAfterStoryChapter": null,
             "matchDuration": 120

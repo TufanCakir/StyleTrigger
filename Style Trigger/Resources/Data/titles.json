@@ -1,0 +1,86 @@
+[
+    {
+        "id": "rookie-trigger",
+        "name": "ROOKIE TRIGGER",
+        "minimumLevel": 1,
+        "tier": 1,
+        "color": "#D1D5DB"
+    },
+    {
+        "id": "neon-initiate",
+        "name": "NEON INITIATE",
+        "minimumLevel": 3,
+        "tier": 1,
+        "color": "#00F6FF"
+    },
+    {
+        "id": "combo-hunter",
+        "name": "COMBO HUNTER",
+        "minimumLevel": 5,
+        "tier": 2,
+        "color": "#36C5FF"
+    },
+    {
+        "id": "style-veteran",
+        "name": "STYLE VETERAN",
+        "minimumLevel": 8,
+        "tier": 2,
+        "color": "#7DD3FC"
+    },
+    {
+        "id": "arena-ace",
+        "name": "ARENA ACE",
+        "minimumLevel": 12,
+        "tier": 3,
+        "color": "#A855F7"
+    },
+    {
+        "id": "demon-breaker",
+        "name": "VOID BREAKER",
+        "minimumLevel": 16,
+        "tier": 3,
+        "color": "#FF007F"
+    },
+    {
+        "id": "trigger-elite",
+        "name": "TRIGGER ELITE",
+        "minimumLevel": 22,
+        "tier": 4,
+        "color": "#FF4D6D"
+    },
+    {
+        "id": "apex-stylist",
+        "name": "APEX STYLIST",
+        "minimumLevel": 30,
+        "tier": 4,
+        "color": "#FF8A00"
+    },
+    {
+        "id": "neon-legend",
+        "name": "NEON LEGEND",
+        "minimumLevel": 40,
+        "tier": 5,
+        "color": "#FFD166"
+    },
+    {
+        "id": "transcendent",
+        "name": "STYLE TRANSCENDENT",
+        "minimumLevel": 55,
+        "tier": 6,
+        "color": "#F5F5FA"
+    },
+    {
+        "id": "omega-trigger",
+        "name": "OMEGA TRIGGER",
+        "minimumLevel": 75,
+        "tier": 7,
+        "color": "#00F6FF"
+    },
+    {
+        "id": "eternal-icon",
+        "name": "ETERNAL ICON",
+        "minimumLevel": 100,
+        "tier": 8,
+        "color": "#FF007F"
+    }
+]

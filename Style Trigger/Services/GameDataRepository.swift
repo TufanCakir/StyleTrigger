@@ -42,7 +42,12 @@ struct GameDataRepository {
                 as: ProgressionConfiguration.self
             ),
             enemies: try decode("enemies", as: [EnemyDefinition].self),
-            events: try decode("events", as: [TimedEventDefinition].self)
+            events: try decode("events", as: [TimedEventDefinition].self),
+            shopItems: try decode("shop", as: [ShopItem].self),
+            accountTitles: try decode(
+                "titles",
+                as: [AccountTitleDefinition].self
+            )
         )
         try validate(content)
         return content
@@ -91,6 +96,16 @@ struct GameDataRepository {
         checkUnique(
             content.events.map(\.id),
             category: "event",
+            errors: &errors
+        )
+        checkUnique(
+            content.shopItems.map(\.id),
+            category: "shop item",
+            errors: &errors
+        )
+        checkUnique(
+            content.accountTitles.map(\.id),
+            category: "account title",
             errors: &errors
         )
         checkUnique(
@@ -175,6 +190,17 @@ struct GameDataRepository {
                 kind: "reward skin",
                 errors: &errors
             )
+        }
+        for item in content.shopItems {
+            if item.productType == .combo,
+                let comboID = item.comboID,
+                !comboIDs.contains(comboID)
+            {
+                errors.append("\(item.id) references missing combo \(comboID)")
+            }
+            if item.productType == .consumable, item.effect == nil {
+                errors.append("\(item.id) has no consumable effect")
+            }
         }
 
         if content.characters.isEmpty {

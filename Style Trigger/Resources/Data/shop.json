@@ -1,0 +1,113 @@
+[
+    {
+        "id": "combo-void-step",
+        "name": "VOID STEP STRING",
+        "description": "Adds the Void Step route to every compatible loadout.",
+        "productType": "combo",
+        "price": 350,
+        "comboID": "void-step",
+        "effect": null,
+        "magnitude": 0,
+        "duration": 0
+    },
+    {
+        "id": "combo-cross-break",
+        "name": "CROSS BREAK STRING",
+        "description": "Unlocks the diagonal Cross Break route globally.",
+        "productType": "combo",
+        "price": 500,
+        "comboID": "cross-break",
+        "effect": null,
+        "magnitude": 0,
+        "duration": 0
+    },
+    {
+        "id": "combo-nova-line",
+        "name": "NOVA LINE STRING",
+        "description": "Unlocks the advanced Nova Line route globally.",
+        "productType": "combo",
+        "price": 900,
+        "comboID": "nova-line",
+        "effect": null,
+        "magnitude": 0,
+        "duration": 0
+    },
+    {
+        "id": "revive-core",
+        "name": "REVIVE CORE",
+        "description":
+            "Return after defeat with 50% HP and keep the current encounter.",
+        "productType": "consumable",
+        "price": 180,
+        "comboID": null,
+        "effect": "revive",
+        "magnitude": 0.5,
+        "duration": 0
+    },
+    {
+        "id": "attack-amp",
+        "name": "ATTACK AMP",
+        "description": "Increases all attack damage for one match.",
+        "productType": "consumable",
+        "price": 140,
+        "comboID": null,
+        "effect": "attackBoost",
+        "magnitude": 0.2,
+        "duration": 120
+    },
+    {
+        "id": "exp-drive",
+        "name": "EXP DRIVE",
+        "description": "Increases character EXP earned after one match.",
+        "productType": "consumable",
+        "price": 160,
+        "comboID": null,
+        "effect": "experienceBoost",
+        "magnitude": 0.5,
+        "duration": 120
+    },
+    {
+        "id": "speed-drive",
+        "name": "SPEED DRIVE",
+        "description": "Accelerates weapon animations for one match.",
+        "productType": "consumable",
+        "price": 140,
+        "comboID": null,
+        "effect": "speedBoost",
+        "magnitude": 0.2,
+        "duration": 120
+    },
+    {
+        "id": "style-drive",
+        "name": "STYLE DRIVE",
+        "description": "Increases Style score earned during one match.",
+        "productType": "consumable",
+        "price": 150,
+        "comboID": null,
+        "effect": "styleBoost",
+        "magnitude": 0.35,
+        "duration": 120
+    },
+    {
+        "id": "hp-drive",
+        "name": "HP DRIVE",
+        "description": "Starts the next match with an expanded HP reserve.",
+        "productType": "consumable",
+        "price": 130,
+        "comboID": null,
+        "effect": "healthBoost",
+        "magnitude": 0.3,
+        "duration": 120
+    },
+    {
+        "id": "weapon-drive",
+        "name": "WEAPON DRIVE",
+        "description": "Boosts weapon-specific damage for one match.",
+        "productType": "consumable",
+        "price": 170,
+        "comboID": null,
+        "effect": "weaponDamageBoost",
+        "magnitude": 0.25,
+        "duration": 120
+    }
+]

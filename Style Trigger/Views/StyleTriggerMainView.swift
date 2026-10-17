@@ -128,8 +128,8 @@ struct StyleTriggerMainView: View {
 
             if isConnected, model.screen == .lobby,
 
-                model.selectedMode == .versus
-
+                model.selectedMode == .versus,
+                model.versusOpponent == .gameCenter
             {
 
                 model.startMatch()
@@ -161,6 +161,10 @@ private struct MenuPager: View {
     var body: some View {
 
         VStack(spacing: 0) {
+
+            StyleTriggerAccountHeader(model: model)
+                .padding(.horizontal, 12)
+                .padding(.top, 6)
 
             StyleTriggerTopTabBar(selection: $model.menuPage, tabs: tabs)
 
@@ -342,12 +346,11 @@ private struct ArsenalView: View {
                 }
 
                 Text("Weapons change routes and timing — never raw power.")
-
                     .font(.caption.monospaced())
-
                     .multilineTextAlignment(.center)
-
                     .foregroundStyle(StyleTriggerPalette.silver.opacity(0.55))
+
+                StyleTriggerShopView(model: model)
 
             }
 
@@ -740,14 +743,26 @@ private struct MatchLobbyView: View {
     @State private var detailCharacter: GameCharacter?
 
     private let environments = [
-
         ("neon-rooftop", "NEON ROOFTOP"),
-
         ("void-cathedral", "VOID CATHEDRAL"),
-
         ("chrome-subway", "CHROME SUBWAY"),
-
     ]
+
+    private var startButtonTitle: String {
+        if model.selectedMode == .training { return "START TRAINING" }
+        if model.selectedMode == .versus {
+            return model.versusOpponent == .bot
+                ? "START BOT FIGHT" : "FIND FIGHT"
+        }
+        return "START GAME"
+    }
+
+    private var startButtonIcon: String {
+        if model.selectedMode == .training {
+            return "figure.strengthtraining.traditional"
+        }
+        return model.selectedMode == .versus ? "person.2.fill" : "bolt.fill"
+    }
 
     var body: some View {
 
@@ -880,26 +895,54 @@ private struct MatchLobbyView: View {
                         )
 
                         if model.selectedMode == .versus {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("OPPONENT")
+                                    .font(.caption.monospaced().weight(.black))
+                                    .foregroundStyle(StyleTriggerPalette.cyan)
 
-                            Picker(
-
-                                "Team Size",
-
-                                selection: Bindable(model).selectedTeamSize
-
-                            ) {
-
-                                ForEach(1...4, id: \.self) { size in
-
-                                    Text("\(size)V\(size)").tag(size)
-
+                                Picker(
+                                    "Opponent",
+                                    selection: Bindable(model).versusOpponent
+                                ) {
+                                    ForEach(VersusOpponent.allCases) {
+                                        opponent in
+                                        Label(
+                                            opponent.title,
+                                            systemImage: opponent.icon
+                                        )
+                                        .tag(opponent)
+                                    }
                                 }
+                                .pickerStyle(.segmented)
 
+                                if model.versusOpponent == .gameCenter {
+                                    Picker(
+                                        "Team Size",
+                                        selection: Bindable(model)
+                                            .selectedTeamSize
+                                    ) {
+                                        ForEach(1...4, id: \.self) { size in
+                                            Text("\(size)V\(size)").tag(size)
+                                        }
+                                    }
+                                    .pickerStyle(.segmented)
+                                } else {
+                                    Label(
+                                        "LOCAL BOT · \(model.selectedDifficulty.uppercased())",
+                                        systemImage: "cpu"
+                                    )
+                                    .font(.caption.monospaced().weight(.bold))
+                                    .foregroundStyle(.secondary)
+                                }
                             }
-
-                            .pickerStyle(.segmented)
-
+                            .padding(12)
+                            .background(
+                                StyleTriggerPalette.panel.opacity(0.82),
+                                in: RoundedRectangle(cornerRadius: 16)
+                            )
                         }
+
+                        StyleTriggerBoostLoadout(model: model)
 
                         Button {
 
@@ -908,14 +951,8 @@ private struct MatchLobbyView: View {
                         } label: {
 
                             Label(
-
-                                model.selectedMode == .versus
-                                    ? "FIND FIGHT" : "START GAME",
-
-                                systemImage: model.selectedMode == .versus
-
-                                    ? "person.2.fill" : "bolt.fill"
-
+                                startButtonTitle,
+                                systemImage: startButtonIcon
                             )
 
                             .font(.headline.monospaced().weight(.black))
@@ -1734,8 +1771,26 @@ private struct CombatScreen: View {
                     .padding(.bottom, 30)
                 }
             }
+
+            if model.isRevivePromptPresented {
+                StyleTriggerReviveOverlay(
+                    reviveCount: model.reviveCount,
+                    useRevive: {
+                        if model.consumeRevive() {
+                            scene.revivePlayer()
+                        }
+                    },
+                    giveUp: model.declineRevive
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(20)
+            }
         }
 
+        .animation(
+            .snappy(duration: 0.24),
+            value: model.isRevivePromptPresented
+        )
         .onAppear {
 
             scene.scaleMode = .aspectFill
@@ -1758,7 +1813,13 @@ private struct CombatScreen: View {
 
                     effectsEnabled: model.progress.combatEffectsEnabled,
 
-                    screenShakeEnabled: model.progress.screenShakeEnabled
+                    screenShakeEnabled: model.progress.screenShakeEnabled,
+                    trainingMode: model.selectedMode == .training,
+                    attackMultiplier: 1 + model.boostMagnitude(.attackBoost)
+                        + model.boostMagnitude(.weaponDamageBoost),
+                    speedMultiplier: 1 + model.boostMagnitude(.speedBoost),
+                    styleMultiplier: 1 + model.boostMagnitude(.styleBoost),
+                    healthMultiplier: 1 + model.boostMagnitude(.healthBoost)
 
                 )
 
@@ -1772,10 +1833,10 @@ private struct CombatScreen: View {
 
             scene.onLocalInput = { input in
 
-                if model.selectedMode == .versus {
-
+                if model.selectedMode == .versus,
+                    model.versusOpponent == .gameCenter
+                {
                     model.multiplayer.send(input)
-
                 }
 
             }
@@ -1874,7 +1935,9 @@ private struct CombatHUD: View {
 
             StyleTriggerBattleBar(
 
-                name: model.content?.enemies.first?.name ?? "WRAITH",
+                name: model.selectedMode == .training
+                    ? "TRAINING DUMMY"
+                    : (model.content?.enemies.first?.name ?? "WRAITH"),
 
                 health: model.combat.enemyHealth,
 
@@ -1893,8 +1956,11 @@ private struct CombatHUD: View {
     }
 
     private var timeString: String {
+        if model.selectedMode == .training {
+            return "∞"
+        }
 
-        String(
+        return String(
 
             format: "%02d:%02d",
 

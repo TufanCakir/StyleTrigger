@@ -14,6 +14,15 @@ enum AppScreen: Equatable {
     case combat
     case results
 }
+
+enum VersusOpponent: String, CaseIterable, Identifiable {
+    case bot
+    case gameCenter
+
+    var id: String { rawValue }
+    var title: String { self == .bot ? "BOT" : "GAME CENTER" }
+    var icon: String { self == .bot ? "cpu" : "person.2.fill" }
+}
 @MainActor
 @Observable
 final class StyleTriggerViewModel {
@@ -24,10 +33,12 @@ final class StyleTriggerViewModel {
     private(set) var combat = CombatSnapshot.initial
     private(set) var remainingSeconds = 90
     private(set) var result: MatchResult?
+    private(set) var isRevivePromptPresented = false
     var selectedMode: GameModeKind = .arcade
     var selectedDifficulty = "NORMAL"
     var selectedTeamSize = 1
     var menuPage = 1
+    var versusOpponent: VersusOpponent = .bot
     private let repository = GameDataRepository()
     private let progressionStore = ProgressionStore()
     private let music = MetalMusicService()
@@ -79,8 +90,28 @@ final class StyleTriggerViewModel {
     }
     var availableCombos: [ComboDefinition] {
         guard let content, let weapon = selectedWeapon else { return [] }
-        let weaponIDs = Set(weapon.associatedCombos)
+        let weaponIDs = Set(weapon.associatedCombos).union(
+            progress.purchasedComboIDs
+        )
         return content.combos.filter { weaponIDs.contains($0.id) }
+    }
+    var accountExperience: Int {
+        progress.characterExperience.values.reduce(0, +)
+            + progress.highScores.values.reduce(0, +) / 20
+    }
+    var accountLevel: Int { max(1, accountExperience / 1_000 + 1) }
+    var currentAccountTitle: AccountTitleDefinition? {
+        content?.accountTitles
+            .filter { $0.minimumLevel <= accountLevel }
+            .max { $0.minimumLevel < $1.minimumLevel }
+    }
+    var reviveCount: Int {
+        progress.consumableInventory["revive-core", default: 0]
+    }
+    func boostMagnitude(_ effect: ConsumableEffect) -> Double {
+        content?.shopItems.first(where: {
+            $0.effect == effect && progress.activeBoostIDs.contains($0.id)
+        })?.magnitude ?? 0
     }
     var selectedModeDefinition: GameModeDefinition? {
         content?.progression.modes.first { $0.id == selectedMode }
@@ -197,11 +228,12 @@ final class StyleTriggerViewModel {
         remainingSeconds = duration
         combat = .initial
         result = nil
+        isRevivePromptPresented = false
         screen = .combat
-        startTimer()
+        if selectedMode != .training { startTimer() }
     }
     func startSelectedMatch() {
-        if selectedMode == .versus {
+        if selectedMode == .versus && versusOpponent == .gameCenter {
             multiplayer.beginMatchmaking(teamSize: selectedTeamSize)
         } else {
             startMatch()
@@ -211,8 +243,16 @@ final class StyleTriggerViewModel {
         guard screen == .combat else { return }
         combat = snapshot
         if snapshot.playerHealth <= 0 {
-            finishMatch(didWin: false)
-        } else if snapshot.enemyHealth <= 0 && selectedMode != .survival {
+            if selectedMode == .training { return }
+            if reviveCount > 0 {
+                isRevivePromptPresented = true
+            } else {
+                finishMatch(didWin: false)
+            }
+        } else if snapshot.enemyHealth <= 0
+            && selectedMode != .survival
+            && selectedMode != .training
+        {
             finishMatch(didWin: true)
         }
     }
@@ -220,7 +260,10 @@ final class StyleTriggerViewModel {
         guard screen == .combat else { return }
         timerTask?.cancel()
         timerTask = nil
-        let experience = max(25, combat.score / 12)
+        let baseExperience = max(25, combat.score / 12)
+        let experience = Int(
+            Double(baseExperience) * (1 + boostMagnitude(.experienceBoost))
+        )
         let completedResult = MatchResult(
             didWin: didWin,
             totalDamage: combat.totalDamage,
@@ -230,6 +273,8 @@ final class StyleTriggerViewModel {
         )
         result = completedResult
         apply(result: completedResult)
+        progress.activeBoostIDs.removeAll()
+        saveProgress()
         screen = .results
     }
     func setSoundEnabled(_ enabled: Bool) {
@@ -256,6 +301,47 @@ final class StyleTriggerViewModel {
     func setScreenShakeEnabled(_ enabled: Bool) {
         progress.screenShakeEnabled = enabled
         saveProgress()
+    }
+    @discardableResult
+    func purchase(_ item: ShopItem) -> Bool {
+        guard progress.styleShards >= item.price else { return false }
+        if item.productType == .combo,
+            let comboID = item.comboID,
+            progress.purchasedComboIDs.contains(comboID)
+        {
+            return false
+        }
+        progress.styleShards -= item.price
+        if item.productType == .combo, let comboID = item.comboID {
+            progress.purchasedComboIDs.insert(comboID)
+        } else {
+            progress.consumableInventory[item.id, default: 0] += 1
+        }
+        saveProgress()
+        return true
+    }
+    func toggleBoost(_ item: ShopItem) {
+        guard item.productType == .consumable, item.effect != .revive else {
+            return
+        }
+        if progress.activeBoostIDs.remove(item.id) != nil {
+            progress.consumableInventory[item.id, default: 0] += 1
+        } else if progress.consumableInventory[item.id, default: 0] > 0 {
+            progress.consumableInventory[item.id, default: 0] -= 1
+            progress.activeBoostIDs.insert(item.id)
+        }
+        saveProgress()
+    }
+    func consumeRevive() -> Bool {
+        guard reviveCount > 0 else { return false }
+        progress.consumableInventory["revive-core", default: 0] -= 1
+        isRevivePromptPresented = false
+        saveProgress()
+        return true
+    }
+    func declineRevive() {
+        isRevivePromptPresented = false
+        finishMatch(didWin: false)
     }
     private func startTimer() {
         timerTask?.cancel()
@@ -290,6 +376,7 @@ final class StyleTriggerViewModel {
             progress.highScores[selectedMode, default: 0],
             result.totalScore
         )
+        progress.styleShards += max(20, result.totalScore / 40)
         if selectedMode == .story && result.didWin {
             progress.storyChapter += 1
             applyConfiguredUnlocks()

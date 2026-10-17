@@ -154,6 +154,11 @@ final class ActionGameScene: SKScene {
     private var particleMultiplier = 0.7
 
     private var targetFrameRate = 60
+    private var trainingMode = false
+    private var attackMultiplier = 1.0
+    private var speedMultiplier = 1.0
+    private var styleMultiplier = 1.0
+    private var maximumPlayerHealth: CGFloat = 100
 
     private let floorY: CGFloat = 190
 
@@ -205,7 +210,12 @@ final class ActionGameScene: SKScene {
 
         effectsEnabled: Bool,
 
-        screenShakeEnabled: Bool
+        screenShakeEnabled: Bool,
+        trainingMode: Bool,
+        attackMultiplier: Double,
+        speedMultiplier: Double,
+        styleMultiplier: Double,
+        healthMultiplier: Double
 
     ) {
 
@@ -224,6 +234,12 @@ final class ActionGameScene: SKScene {
         self.effectsEnabled = effectsEnabled
 
         self.screenShakeEnabled = screenShakeEnabled
+        self.trainingMode = trainingMode
+        self.attackMultiplier = attackMultiplier
+        self.speedMultiplier = speedMultiplier
+        self.styleMultiplier = styleMultiplier
+        self.maximumPlayerHealth = 100 * healthMultiplier
+        self.playerHealth = maximumPlayerHealth
 
         configureCombosForCurrentWeapon()
 
@@ -243,6 +259,18 @@ final class ActionGameScene: SKScene {
 
         if let id = currentWeapon?.id { onWeaponChanged?(id) }
 
+    }
+
+    func revivePlayer(healthFraction: Double = 0.5) {
+        childNode(withName: "gameOver")?.removeFromParent()
+        isGameOver = false
+        playerHealth = maximumPlayerHealth * max(0.1, min(1, healthFraction))
+        player.alpha = 1
+        player.position = playerHome
+        playerState = .idle
+        enemyAttackTime = lastUpdateTime + 1
+        showCallout("REVIVE!", color: .cyan)
+        updateHUD()
     }
 
     func receiveRemoteInput(_ input: CombatInput) {
@@ -1126,7 +1154,7 @@ final class ActionGameScene: SKScene {
 
             combo += matchedCombo.inputSequence.count
 
-            score += matchedCombo.stylePoints
+            score += Int(Double(matchedCombo.stylePoints) * styleMultiplier)
 
             showCallout(
 
@@ -1178,7 +1206,10 @@ final class ActionGameScene: SKScene {
 
         player.removeAction(forKey: "attack")
 
-        let speed = max(0.55, currentWeapon?.attackSpeed ?? 1)
+        let speed = max(
+            0.55,
+            (currentWeapon?.attackSpeed ?? 1) * speedMultiplier
+        )
 
         player.run(
 
@@ -1240,7 +1271,9 @@ final class ActionGameScene: SKScene {
         let kindMultiplier: CGFloat =
             kind == .slash ? 0.72 : (kind == .launcher ? 0.9 : 1.08)
 
-        let dealtDamage = Int(baseDamage * kindMultiplier * multiplier)
+        let dealtDamage = Int(
+            baseDamage * kindMultiplier * multiplier * attackMultiplier
+        )
 
         enemyHealth = max(0, enemyHealth - CGFloat(dealtDamage))
 
@@ -1785,6 +1818,13 @@ final class ActionGameScene: SKScene {
 
     private func defeatEnemy() {
         guard !isEnemyDefeated, !isGameOver else { return }
+        if trainingMode {
+            enemyHealth = 80 + CGFloat(wave * 18)
+            enemyHealthBar.xScale = 1
+            showCallout("DUMMY RESET", color: .cyan)
+            updateHUD()
+            return
+        }
         isEnemyDefeated = true
         waveGeneration &+= 1
         let generation = waveGeneration
@@ -1870,6 +1910,7 @@ final class ActionGameScene: SKScene {
         }
 
         playerHealth -= CGFloat(10 + wave * 2)
+        if trainingMode { playerHealth = max(1, playerHealth) }
 
         combo = 0
 
@@ -1897,7 +1938,7 @@ final class ActionGameScene: SKScene {
 
         updateHUD()
 
-        if playerHealth <= 0 {
+        if playerHealth <= 0 && !trainingMode {
 
             endGame()
 
@@ -2008,8 +2049,11 @@ final class ActionGameScene: SKScene {
         case 13...17: (rank, styleRank, color) = ("S", .s, .systemPink)
 
         case 18...22: (rank, styleRank, color) = ("SS", .ss, .systemPink)
-
-        default: (rank, styleRank, color) = ("SSS", .sss, .systemOrange)
+        case 23...29: (rank, styleRank, color) = ("SSS", .sss, .systemOrange)
+        case 30...37: (rank, styleRank, color) = ("X", .x, .systemOrange)
+        case 38...47: (rank, styleRank, color) = ("XX", .xx, .yellow)
+        case 48...59: (rank, styleRank, color) = ("XXX", .xxx, .white)
+        default: (rank, styleRank, color) = ("Ω", .omega, .cyan)
 
         }
 
@@ -2029,7 +2073,7 @@ final class ActionGameScene: SKScene {
 
         styleLabel.run(.scale(to: 1, duration: 0.12))
 
-        let playerScale = max(0.001, playerHealth / 100)
+        let playerScale = max(0.001, playerHealth / maximumPlayerHealth)
 
         healthBar.xScale = playerScale
 
@@ -2043,7 +2087,9 @@ final class ActionGameScene: SKScene {
 
             CombatSnapshot(
 
-                playerHealth: Double(max(0, playerHealth) / 100),
+                playerHealth: Double(
+                    max(0, playerHealth) / maximumPlayerHealth
+                ),
 
                 enemyHealth: Double(max(0, enemyHealth) / maximumEnemyHealth),
 

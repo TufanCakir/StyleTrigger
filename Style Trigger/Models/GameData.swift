@@ -246,6 +246,43 @@ nonisolated struct ComboDefinition: Codable, Identifiable, Hashable, Sendable {
 
 }
 
+nonisolated enum ShopProductType: String, Codable, Sendable {
+    case combo
+    case consumable
+}
+
+nonisolated enum ConsumableEffect: String, Codable, CaseIterable, Sendable {
+    case revive
+    case attackBoost
+    case experienceBoost
+    case speedBoost
+    case styleBoost
+    case healthBoost
+    case weaponDamageBoost
+}
+
+nonisolated struct ShopItem: Codable, Identifiable, Hashable, Sendable {
+    let id: String
+    let name: String
+    let description: String
+    let productType: ShopProductType
+    let price: Int
+    let comboID: String?
+    let effect: ConsumableEffect?
+    let magnitude: Double
+    let duration: Double
+}
+
+nonisolated struct AccountTitleDefinition: Codable, Identifiable, Hashable,
+    Sendable
+{
+    let id: String
+    let name: String
+    let minimumLevel: Int
+    let tier: Int
+    let color: String
+}
+
 nonisolated enum GameModeKind: String, Codable, CaseIterable, Identifiable,
     Sendable
 {
@@ -259,6 +296,8 @@ nonisolated enum GameModeKind: String, Codable, CaseIterable, Identifiable,
     case versus
 
     case timedEvent
+
+    case training
 
     var id: String { rawValue }
 
@@ -275,6 +314,8 @@ nonisolated enum GameModeKind: String, Codable, CaseIterable, Identifiable,
         case .versus: "VERSUS"
 
         case .timedEvent: "TIMED EVENT"
+
+        case .training: "TRAINING"
 
         }
 
@@ -411,6 +452,14 @@ nonisolated struct PlayerProgress: Codable, Equatable, Sendable {
 
     var screenShakeEnabled: Bool
 
+    var styleShards: Int
+
+    var consumableInventory: [String: Int]
+
+    var purchasedComboIDs: Set<String>
+
+    var activeBoostIDs: Set<String>
+
     static let initial = PlayerProgress(
 
         storyChapter: 1,
@@ -449,7 +498,15 @@ nonisolated struct PlayerProgress: Codable, Equatable, Sendable {
 
         combatEffectsEnabled: true,
 
-        screenShakeEnabled: true
+        screenShakeEnabled: true,
+
+        styleShards: 500,
+
+        consumableInventory: ["revive-core": 1],
+
+        purchasedComboIDs: [],
+
+        activeBoostIDs: []
 
     )
 
@@ -468,6 +525,8 @@ nonisolated struct PlayerProgress: Codable, Equatable, Sendable {
         case targetFrameRate, graphicsQuality, combatEffectsEnabled
 
         case screenShakeEnabled
+
+        case styleShards, consumableInventory, purchasedComboIDs, activeBoostIDs
 
     }
 
@@ -509,7 +568,15 @@ nonisolated struct PlayerProgress: Codable, Equatable, Sendable {
 
         combatEffectsEnabled: Bool,
 
-        screenShakeEnabled: Bool
+        screenShakeEnabled: Bool,
+
+        styleShards: Int,
+
+        consumableInventory: [String: Int],
+
+        purchasedComboIDs: Set<String>,
+
+        activeBoostIDs: Set<String>
 
     ) {
 
@@ -550,6 +617,14 @@ nonisolated struct PlayerProgress: Codable, Equatable, Sendable {
         self.combatEffectsEnabled = combatEffectsEnabled
 
         self.screenShakeEnabled = screenShakeEnabled
+
+        self.styleShards = styleShards
+
+        self.consumableInventory = consumableInventory
+
+        self.purchasedComboIDs = purchasedComboIDs
+
+        self.activeBoostIDs = activeBoostIDs
 
     }
 
@@ -663,13 +738,34 @@ nonisolated struct PlayerProgress: Codable, Equatable, Sendable {
                 forKey: .screenShakeEnabled
             ) ?? true
 
+        styleShards =
+            try container.decodeIfPresent(Int.self, forKey: .styleShards) ?? 500
+
+        consumableInventory =
+            try container.decodeIfPresent(
+                [String: Int].self,
+                forKey: .consumableInventory
+            ) ?? ["revive-core": 1]
+
+        purchasedComboIDs =
+            try container.decodeIfPresent(
+                Set<String>.self,
+                forKey: .purchasedComboIDs
+            ) ?? []
+
+        activeBoostIDs =
+            try container.decodeIfPresent(
+                Set<String>.self,
+                forKey: .activeBoostIDs
+            ) ?? []
+
     }
 
 }
 
 nonisolated enum StyleRank: Int, Codable, CaseIterable, Comparable, Sendable {
 
-    case d, c, b, a, s, ss, sss
+    case d, c, b, a, s, ss, sss, x, xx, xxx, omega
 
     static func < (lhs: StyleRank, rhs: StyleRank) -> Bool {
 
@@ -695,6 +791,14 @@ nonisolated enum StyleRank: Int, Codable, CaseIterable, Comparable, Sendable {
 
         case .sss: "SSS"
 
+        case .x: "X"
+
+        case .xx: "XX"
+
+        case .xxx: "XXX"
+
+        case .omega: "Ω"
+
         }
 
     }
@@ -716,6 +820,14 @@ nonisolated enum StyleRank: Int, Codable, CaseIterable, Comparable, Sendable {
         case .ss: "Sick Skills"
 
         case .sss: "Smokin’ Sexy Style!"
+
+        case .x: "Extreme"
+
+        case .xx: "Execution Master"
+
+        case .xxx: "Style Transcendent"
+
+        case .omega: "Omega Trigger"
 
         }
 
@@ -784,6 +896,10 @@ nonisolated struct GameContent: Sendable {
     let enemies: [EnemyDefinition]
 
     let events: [TimedEventDefinition]
+
+    let shopItems: [ShopItem]
+
+    let accountTitles: [AccountTitleDefinition]
 
 }
 
