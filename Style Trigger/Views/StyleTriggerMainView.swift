@@ -1695,66 +1695,45 @@ private struct CombatScreen: View {
 
             .padding(.top, 34)
 
-            HStack {
-
-                VStack {
-
+            VStack {
+                HStack {
                     Spacer()
 
                     Button("EXIT", systemImage: "xmark") {
-
                         model.finishMatch(didWin: false)
-
                     }
-
                     .buttonStyle(.bordered)
-
                     .tint(StyleTriggerPalette.magenta)
-
                 }
+                .padding(.top, 200)
 
                 Spacer()
 
                 if model.equippedWeapons.count > 1 {
-
-                    VStack {
-
+                    HStack {
                         Spacer()
 
                         Button {
-
                             scene.switchWeapon()
-
                         } label: {
-
                             Label(
-
                                 model.selectedWeapon?.name ?? "SWITCH",
-
                                 systemImage: "arrow.triangle.2.circlepath"
-
                             )
-
                             .font(.caption2.monospaced().weight(.black))
-
                         }
-
                         .buttonStyle(
                             StyleTriggerPrimaryButtonStyle(
                                 color: StyleTriggerPalette.cyan
                             )
                         )
-
                         .frame(maxWidth: 145)
 
+                        Spacer()
                     }
-
+                    .padding(.bottom, 30)
                 }
-
             }
-
-            .padding(18)
-
         }
 
         .onAppear {
@@ -2257,8 +2236,44 @@ extension Color {
     }
 }
 
-#Preview {
-
+#Preview("Menü") {
     StyleTriggerMainView()
+}
 
+#Preview("Kampf") {
+    StyleTriggerCombatPreview()
+}
+
+// Preview-only wrapper: lädt echte Spieldaten und startet einen lokalen Kampf.
+private struct StyleTriggerCombatPreview: View {
+    @State private var model = StyleTriggerViewModel()
+
+    var body: some View {
+        ZStack {
+            StyleTriggerBackground()
+
+            if model.screen == .combat {
+                CombatScreen(model: model)
+            } else if let error = model.loadError {
+                DataErrorView(message: error) {
+                    Task { await prepareCombat() }
+                }
+            } else {
+                ProgressView("LOADING COMBAT PREVIEW")
+                    .tint(StyleTriggerPalette.cyan)
+            }
+        }
+        .preferredColorScheme(.dark)
+        .task { await prepareCombat() }
+    }
+
+    @MainActor
+    private func prepareCombat() async {
+        if model.content == nil {
+            await model.load()
+        }
+        guard model.content != nil, model.screen != .combat else { return }
+        model.openLobby(for: .arcade)
+        model.startMatch()
+    }
 }
