@@ -59,5 +59,294 @@
         "damage": 72,
         "stylePoints": 250,
         "isAirLauncher": true
+    },
+    {
+        "id": "titan-cleave",
+        "name": "TITAN CLEAVE",
+        "inputSequence": [
+            "tap",
+            "tap",
+            "swipeDown"
+        ],
+        "damage": 78,
+        "stylePoints": 210,
+        "isAirLauncher": false
+    },
+    {
+        "id": "red-uprising",
+        "name": "RED UPRISING",
+        "inputSequence": [
+            "tap",
+            "swipeUp",
+            "tap"
+        ],
+        "damage": 70,
+        "stylePoints": 220,
+        "isAirLauncher": true
+    },
+    {
+        "id": "fault-line",
+        "name": "FAULT LINE",
+        "inputSequence": [
+            "swipeDown",
+            "tap",
+            "tap"
+        ],
+        "damage": 92,
+        "stylePoints": 300,
+        "isAirLauncher": false
+    },
+    {
+        "id": "violet-cross",
+        "name": "VIOLET CROSS",
+        "inputSequence": [
+            "tap",
+            "tap",
+            "diagonalUpRight"
+        ],
+        "damage": 52,
+        "stylePoints": 190,
+        "isAirLauncher": false
+    },
+    {
+        "id": "orbit-dance",
+        "name": "ORBIT DANCE",
+        "inputSequence": [
+            "swipeRight",
+            "tap",
+            "swipeLeft",
+            "tap"
+        ],
+        "damage": 61,
+        "stylePoints": 250,
+        "isAirLauncher": false
+    },
+    {
+        "id": "split-second",
+        "name": "SPLIT SECOND",
+        "inputSequence": [
+            "diagonalUpLeft",
+            "diagonalUpRight",
+            "tap"
+        ],
+        "damage": 68,
+        "stylePoints": 280,
+        "isAirLauncher": true
+    },
+    {
+        "id": "iron-jab",
+        "name": "IRON JAB",
+        "inputSequence": [
+            "tap",
+            "tap",
+            "swipeRight"
+        ],
+        "damage": 48,
+        "stylePoints": 170,
+        "isAirLauncher": false
+    },
+    {
+        "id": "meteor-upper",
+        "name": "METEOR UPPER",
+        "inputSequence": [
+            "tap",
+            "swipeUp",
+            "tap"
+        ],
+        "damage": 66,
+        "stylePoints": 230,
+        "isAirLauncher": true
+    },
+    {
+        "id": "breaker-rush",
+        "name": "BREAKER RUSH",
+        "inputSequence": [
+            "swipeRight",
+            "tap",
+            "tap",
+            "tap"
+        ],
+        "damage": 82,
+        "stylePoints": 290,
+        "isAirLauncher": false
+    },
+    {
+        "id": "frost-wheel",
+        "name": "FROST WHEEL",
+        "inputSequence": [
+            "tap",
+            "swipeRight",
+            "tap"
+        ],
+        "damage": 55,
+        "stylePoints": 210,
+        "isAirLauncher": false
+    },
+    {
+        "id": "chain-current",
+        "name": "CHAIN CURRENT",
+        "inputSequence": [
+            "swipeLeft",
+            "swipeRight",
+            "tap",
+            "tap"
+        ],
+        "damage": 63,
+        "stylePoints": 260,
+        "isAirLauncher": false
+    },
+    {
+        "id": "zero-turn",
+        "name": "ZERO TURN",
+        "inputSequence": [
+            "swipeDown",
+            "diagonalUpRight",
+            "tap"
+        ],
+        "damage": 69,
+        "stylePoints": 280,
+        "isAirLauncher": true
+    },
+    {
+        "id": "quick-bolt",
+        "name": "QUICK BOLT",
+        "inputSequence": [
+            "tap",
+            "tap",
+            "swipeLeft"
+        ],
+        "damage": 51,
+        "stylePoints": 180,
+        "isAirLauncher": false
+    },
+    {
+        "id": "rail-piercer",
+        "name": "RAIL PIERCER",
+        "inputSequence": [
+            "swipeDown",
+            "tap",
+            "diagonalUpRight"
+        ],
+        "damage": 79,
+        "stylePoints": 270,
+        "isAirLauncher": false
+    },
+    {
+        "id": "evasive-volley",
+        "name": "EVASIVE VOLLEY",
+        "inputSequence": [
+            "swipeLeft",
+            "tap",
+            "tap"
+        ],
+        "damage": 58,
+        "stylePoints": 240,
+        "isAirLauncher": false
+    },
+    {
+        "id": "golden-draw",
+        "name": "GOLDEN DRAW",
+        "inputSequence": [
+            "swipeRight",
+            "tap"
+        ],
+        "damage": 59,
+        "stylePoints": 210,
+        "isAirLauncher": false
+    },
+    {
+        "id": "moon-divider",
+        "name": "MOON DIVIDER",
+        "inputSequence": [
+            "diagonalDownLeft",
+            "diagonalUpRight"
+        ],
+        "damage": 73,
+        "stylePoints": 275,
+        "isAirLauncher": false
+    },
+    {
+        "id": "still-wind",
+        "name": "STILL WIND",
+        "inputSequence": [
+            "tap",
+            "swipeDown",
+            "tap"
+        ],
+        "damage": 81,
+        "stylePoints": 300,
+        "isAirLauncher": false
+    },
+    {
+        "id": "grave-arc",
+        "name": "GRAVE ARC",
+        "inputSequence": [
+            "tap",
+            "swipeLeft",
+            "tap"
+        ],
+        "damage": 70,
+        "stylePoints": 240,
+        "isAirLauncher": false
+    },
+    {
+        "id": "night-harvest",
+        "name": "NIGHT HARVEST",
+        "inputSequence": [
+            "swipeUp",
+            "swipeRight",
+            "tap"
+        ],
+        "damage": 86,
+        "stylePoints": 310,
+        "isAirLauncher": true
+    },
+    {
+        "id": "red-eclipse",
+        "name": "RED ECLIPSE",
+        "inputSequence": [
+            "diagonalDownRight",
+            "diagonalUpLeft",
+            "tap"
+        ],
+        "damage": 98,
+        "stylePoints": 340,
+        "isAirLauncher": false
+    },
+    {
+        "id": "star-thrust",
+        "name": "STAR THRUST",
+        "inputSequence": [
+            "tap",
+            "swipeRight",
+            "tap"
+        ],
+        "damage": 62,
+        "stylePoints": 220,
+        "isAirLauncher": false
+    },
+    {
+        "id": "comet-rise",
+        "name": "COMET RISE",
+        "inputSequence": [
+            "tap",
+            "swipeUp",
+            "diagonalUpRight"
+        ],
+        "damage": 76,
+        "stylePoints": 285,
+        "isAirLauncher": true
+    },
+    {
+        "id": "nova-line",
+        "name": "NOVA LINE",
+        "inputSequence": [
+            "swipeDown",
+            "swipeRight",
+            "tap"
+        ],
+        "damage": 88,
+        "stylePoints": 320,
+        "isAirLauncher": false
     }
 ]

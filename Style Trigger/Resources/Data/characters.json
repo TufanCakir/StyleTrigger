@@ -10,8 +10,36 @@
             "cross-break"
         ],
         "unlockedSkins": [
-            "vex-default"
-        ]
+            "vex-default",
+            "vex-shadow"
+        ],
+        "appearance": {
+            "primaryColor": "#00F6FF",
+            "secondaryColor": "#24344D",
+            "visorColor": "#00F6FF",
+            "bodyStyle": "slim",
+            "helmetStyle": "angular",
+            "armorStyle": "light",
+            "weaponStyle": "energyBlade",
+            "weaponColor": "#00F6FF",
+            "glowIntensity": 0.85,
+            "outlineWidth": 2,
+            "bodyScale": 1,
+            "weaponScale": 1
+        },
+        "compatibleWeaponIDs": [
+            "neon-edge",
+            "standard-sword"
+        ],
+        "defaultWeaponIDs": [
+            "neon-edge"
+        ],
+        "animationProfile": {
+            "idleSpeed": 1,
+            "attackSpeed": 1.1,
+            "movementBounce": 0.6,
+            "trailLength": 1
+        }
     },
     {
         "id": "nyx",
@@ -20,10 +48,373 @@
         "unlocked": false,
         "baseComboList": [
             "razor-chain",
-            "void-step"
+            "void-step",
+            "gravity-rend"
         ],
         "unlockedSkins": [
-            "nyx-default"
-        ]
+            "nyx-default",
+            "nyx-shadow"
+        ],
+        "appearance": {
+            "primaryColor": "#FF007F",
+            "secondaryColor": "#501A62",
+            "visorColor": "#FF5CAD",
+            "bodyStyle": "agile",
+            "helmetStyle": "pointed",
+            "armorStyle": "shadow",
+            "weaponStyle": "dualBlades",
+            "weaponColor": "#FF007F",
+            "glowIntensity": 0.9,
+            "outlineWidth": 2,
+            "bodyScale": 0.96,
+            "weaponScale": 0.9
+        },
+        "compatibleWeaponIDs": [
+            "void-fang",
+            "twin-arc"
+        ],
+        "defaultWeaponIDs": [
+            "void-fang"
+        ],
+        "animationProfile": {
+            "idleSpeed": 1.12,
+            "attackSpeed": 1.22,
+            "movementBounce": 0.8,
+            "trailLength": 1.1
+        }
+    },
+    {
+        "id": "kairon",
+        "name": "KAIRON",
+        "description":
+            "A plated breaker who turns commitment into crushing impact.",
+        "unlocked": false,
+        "baseComboList": [
+            "titan-cleave",
+            "red-uprising",
+            "fault-line"
+        ],
+        "unlockedSkins": [
+            "kairon-default",
+            "kairon-shadow"
+        ],
+        "appearance": {
+            "primaryColor": "#FF334E",
+            "secondaryColor": "#56131B",
+            "visorColor": "#FF8A00",
+            "bodyStyle": "armored",
+            "helmetStyle": "horned",
+            "armorStyle": "plated",
+            "weaponStyle": "greatsword",
+            "weaponColor": "#FF334E",
+            "glowIntensity": 0.8,
+            "outlineWidth": 3,
+            "bodyScale": 1.12,
+            "weaponScale": 1.18
+        },
+        "compatibleWeaponIDs": [
+            "titan-core"
+        ],
+        "defaultWeaponIDs": [
+            "titan-core"
+        ],
+        "animationProfile": {
+            "idleSpeed": 0.72,
+            "attackSpeed": 0.75,
+            "movementBounce": 0.35,
+            "trailLength": 0.8
+        }
+    },
+    {
+        "id": "zyra",
+        "name": "ZYRA",
+        "description": "A violet duelist who layers alternating blade routes.",
+        "unlocked": false,
+        "baseComboList": [
+            "violet-cross",
+            "orbit-dance",
+            "split-second"
+        ],
+        "unlockedSkins": [
+            "zyra-default",
+            "zyra-shadow"
+        ],
+        "appearance": {
+            "primaryColor": "#A855F7",
+            "secondaryColor": "#3B1766",
+            "visorColor": "#E879F9",
+            "bodyStyle": "slim",
+            "helmetStyle": "masked",
+            "armorStyle": "light",
+            "weaponStyle": "dualBlades",
+            "weaponColor": "#C084FC",
+            "glowIntensity": 0.95,
+            "outlineWidth": 1.8,
+            "bodyScale": 0.94,
+            "weaponScale": 0.85
+        },
+        "compatibleWeaponIDs": [
+            "twin-arc"
+        ],
+        "defaultWeaponIDs": [
+            "twin-arc"
+        ],
+        "animationProfile": {
+            "idleSpeed": 1.2,
+            "attackSpeed": 1.32,
+            "movementBounce": 0.75,
+            "trailLength": 1.15
+        }
+    },
+    {
+        "id": "draev",
+        "name": "DRAEV",
+        "description":
+            "A close-range brawler built around cancels and counter punches.",
+        "unlocked": false,
+        "baseComboList": [
+            "iron-jab",
+            "meteor-upper",
+            "breaker-rush"
+        ],
+        "unlockedSkins": [
+            "draev-default",
+            "draev-shadow"
+        ],
+        "appearance": {
+            "primaryColor": "#FF8A00",
+            "secondaryColor": "#5C2B08",
+            "visorColor": "#FFD166",
+            "bodyStyle": "heavy",
+            "helmetStyle": "rounded",
+            "armorStyle": "plated",
+            "weaponStyle": "gauntlets",
+            "weaponColor": "#FF8A00",
+            "glowIntensity": 0.75,
+            "outlineWidth": 3,
+            "bodyScale": 1.15,
+            "weaponScale": 1.12
+        },
+        "compatibleWeaponIDs": [
+            "impact-gauntlets"
+        ],
+        "defaultWeaponIDs": [
+            "impact-gauntlets"
+        ],
+        "animationProfile": {
+            "idleSpeed": 0.95,
+            "attackSpeed": 1.12,
+            "movementBounce": 0.5,
+            "trailLength": 0.6
+        }
+    },
+    {
+        "id": "riven",
+        "name": "RIVEN",
+        "description":
+            "An ice-fast trick fighter who redirects spinning momentum.",
+        "unlocked": false,
+        "baseComboList": [
+            "frost-wheel",
+            "chain-current",
+            "zero-turn"
+        ],
+        "unlockedSkins": [
+            "riven-default",
+            "riven-shadow"
+        ],
+        "appearance": {
+            "primaryColor": "#7DD3FC",
+            "secondaryColor": "#164E63",
+            "visorColor": "#E0F2FE",
+            "bodyStyle": "agile",
+            "helmetStyle": "visor",
+            "armorStyle": "tactical",
+            "weaponStyle": "nunchaku",
+            "weaponColor": "#7DD3FC",
+            "glowIntensity": 0.88,
+            "outlineWidth": 1.7,
+            "bodyScale": 0.92,
+            "weaponScale": 0.86
+        },
+        "compatibleWeaponIDs": [
+            "frost-link"
+        ],
+        "defaultWeaponIDs": [
+            "frost-link"
+        ],
+        "animationProfile": {
+            "idleSpeed": 1.28,
+            "attackSpeed": 1.35,
+            "movementBounce": 0.9,
+            "trailLength": 1.25
+        }
+    },
+    {
+        "id": "xeron",
+        "name": "XERON",
+        "description":
+            "A tactical marksman who controls space with charged bolts.",
+        "unlocked": false,
+        "baseComboList": [
+            "quick-bolt",
+            "rail-piercer",
+            "evasive-volley"
+        ],
+        "unlockedSkins": [
+            "xeron-default",
+            "xeron-shadow"
+        ],
+        "appearance": {
+            "primaryColor": "#39FF88",
+            "secondaryColor": "#123D27",
+            "visorColor": "#B6FFCE",
+            "bodyStyle": "athletic",
+            "helmetStyle": "visor",
+            "armorStyle": "tactical",
+            "weaponStyle": "crossbow",
+            "weaponColor": "#39FF88",
+            "glowIntensity": 0.7,
+            "outlineWidth": 2,
+            "bodyScale": 1,
+            "weaponScale": 0.95
+        },
+        "compatibleWeaponIDs": [
+            "vector-crossbow"
+        ],
+        "defaultWeaponIDs": [
+            "vector-crossbow"
+        ],
+        "animationProfile": {
+            "idleSpeed": 0.9,
+            "attackSpeed": 0.95,
+            "movementBounce": 0.45,
+            "trailLength": 0.7
+        }
+    },
+    {
+        "id": "vael",
+        "name": "VAEL",
+        "description": "An elegant swordsman focused on precise draw attacks.",
+        "unlocked": false,
+        "baseComboList": [
+            "golden-draw",
+            "moon-divider",
+            "still-wind"
+        ],
+        "unlockedSkins": [
+            "vael-default",
+            "vael-shadow"
+        ],
+        "appearance": {
+            "primaryColor": "#FFD166",
+            "secondaryColor": "#6B4B0B",
+            "visorColor": "#FFF4C2",
+            "bodyStyle": "slim",
+            "helmetStyle": "angular",
+            "armorStyle": "ceremonial",
+            "weaponStyle": "katana",
+            "weaponColor": "#FFD166",
+            "glowIntensity": 0.82,
+            "outlineWidth": 1.5,
+            "bodyScale": 1,
+            "weaponScale": 1.08
+        },
+        "compatibleWeaponIDs": [
+            "sun-katana"
+        ],
+        "defaultWeaponIDs": [
+            "sun-katana"
+        ],
+        "animationProfile": {
+            "idleSpeed": 1.05,
+            "attackSpeed": 1.25,
+            "movementBounce": 0.5,
+            "trailLength": 1.05
+        }
+    },
+    {
+        "id": "noxar",
+        "name": "NOXAR",
+        "description":
+            "A shadow reaper whose wide arcs punish reckless approach.",
+        "unlocked": false,
+        "baseComboList": [
+            "grave-arc",
+            "night-harvest",
+            "red-eclipse"
+        ],
+        "unlockedSkins": [
+            "noxar-default",
+            "noxar-shadow"
+        ],
+        "appearance": {
+            "primaryColor": "#B91C3C",
+            "secondaryColor": "#24050B",
+            "visorColor": "#FF174F",
+            "bodyStyle": "heavy",
+            "helmetStyle": "horned",
+            "armorStyle": "shadow",
+            "weaponStyle": "scythe",
+            "weaponColor": "#E11D48",
+            "glowIntensity": 1,
+            "outlineWidth": 2.8,
+            "bodyScale": 1.08,
+            "weaponScale": 1.15
+        },
+        "compatibleWeaponIDs": [
+            "eclipse-scythe"
+        ],
+        "defaultWeaponIDs": [
+            "eclipse-scythe"
+        ],
+        "animationProfile": {
+            "idleSpeed": 0.78,
+            "attackSpeed": 0.85,
+            "movementBounce": 0.4,
+            "trailLength": 1.35
+        }
+    },
+    {
+        "id": "astryx",
+        "name": "ASTRYX",
+        "description":
+            "A futuristic lancer who links thrusts into aerial pursuit.",
+        "unlocked": false,
+        "baseComboList": [
+            "star-thrust",
+            "comet-rise",
+            "nova-line"
+        ],
+        "unlockedSkins": [
+            "astryx-default",
+            "astryx-shadow"
+        ],
+        "appearance": {
+            "primaryColor": "#F5F5FA",
+            "secondaryColor": "#155E75",
+            "visorColor": "#00F6FF",
+            "bodyStyle": "athletic",
+            "helmetStyle": "pointed",
+            "armorStyle": "ceremonial",
+            "weaponStyle": "spear",
+            "weaponColor": "#00F6FF",
+            "glowIntensity": 1,
+            "outlineWidth": 2,
+            "bodyScale": 1.03,
+            "weaponScale": 1.2
+        },
+        "compatibleWeaponIDs": [
+            "nova-spear"
+        ],
+        "defaultWeaponIDs": [
+            "nova-spear"
+        ],
+        "animationProfile": {
+            "idleSpeed": 1,
+            "attackSpeed": 1.15,
+            "movementBounce": 0.55,
+            "trailLength": 1.3
+        }
     }
 ]

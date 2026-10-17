@@ -10,911 +10,2255 @@ import SpriteKit
 import SwiftUI
 import UIKit
 
-enum StyleTriggerPalette {
-    static let background = Color(hex: "0B0B0F")
-    static let panel = Color(hex: "161924")
-    static let cyan = Color(hex: "00F6FF")
-    static let magenta = Color(hex: "FF007F")
-    static let silver = Color(hex: "F5F5FA")
-    static let steel = Color(hex: "D1D5DB")
-    static let darkSteel = Color(hex: "6B7280")
-}
-
 struct StyleTriggerMainView: View {
+
     @State private var model = StyleTriggerViewModel()
 
     var body: some View {
+
         ZStack {
+
             StyleTriggerBackground()
 
             if let error = model.loadError {
+
                 DataErrorView(message: error) {
+
                     Task { await model.load() }
+
                 }
+
             } else if model.content == nil {
+
                 ProgressView("LOADING COMBAT DATA")
+
                     .tint(StyleTriggerPalette.cyan)
+
                     .foregroundStyle(StyleTriggerPalette.silver)
+
             } else {
+
                 switch model.screen {
+
                 case .menu:
+
                     MenuPager(model: model)
+
                 case .lobby:
+
                     MatchLobbyView(model: model)
+
                 case .combat:
+
                     CombatScreen(model: model)
+
                 case .results:
+
                     MatchResultsView(model: model)
+
                 }
+
             }
+
         }
+
         .preferredColorScheme(.dark)
+
         .persistentSystemOverlays(.hidden)
+
         .task {
+
             if model.content == nil {
+
                 await model.load()
+
             }
+
         }
+
         .fullScreenCover(
+
             isPresented: Binding(
+
                 get: { model.multiplayer.isShowingMatchmaker },
+
                 set: { model.multiplayer.isShowingMatchmaker = $0 }
+
             )
+
         ) {
+
             GameCenterMatchmakerView(service: model.multiplayer)
+
                 .ignoresSafeArea()
+
         }
+
         .fullScreenCover(
+
             isPresented: Binding(
+
                 get: { model.multiplayer.authenticationViewController != nil },
+
                 set: { isPresented in
+
                     if !isPresented {
+
                         model.multiplayer.authenticationViewController = nil
+
                     }
+
                 }
+
             )
+
         ) {
+
             if let controller = model.multiplayer.authenticationViewController {
+
                 GameCenterAuthenticationView(viewController: controller)
+
                     .ignoresSafeArea()
+
             }
+
         }
+
         .onChange(of: model.multiplayer.isConnected) { _, isConnected in
+
             if isConnected, model.screen == .lobby,
+
                 model.selectedMode == .versus
+
             {
+
                 model.startMatch()
+
             }
+
         }
+
     }
+
 }
 
 private struct MenuPager: View {
+
     @Bindable var model: StyleTriggerViewModel
 
+    private let tabs = [
+
+        StyleTriggerTab(id: 0, title: "ARSENAL", icon: "bolt.horizontal.fill"),
+
+        StyleTriggerTab(id: 1, title: "BATTLE", icon: "scope"),
+
+        StyleTriggerTab(id: 2, title: "COMBOS", icon: "book.closed.fill"),
+
+        StyleTriggerTab(id: 3, title: "SETTINGS", icon: "gear"),
+
+    ]
+
     var body: some View {
-        TabView(selection: $model.menuPage) {
-            ArsenalView(model: model)
-                .tag(0)
-            ModeSelectView(model: model)
-                .tag(1)
-            ComboAndSettingsView(model: model)
-                .tag(2)
+
+        VStack(spacing: 0) {
+
+            StyleTriggerTopTabBar(selection: $model.menuPage, tabs: tabs)
+
+            TabView(selection: $model.menuPage) {
+
+                ArsenalView(model: model)
+
+                    .tag(0)
+
+                ModeSelectView(model: model)
+
+                    .tag(1)
+
+                ComboAndSettingsView(model: model)
+
+                    .tag(2)
+
+                StyleTriggerSettingsView(model: model)
+
+                    .tag(3)
+
+            }
+
+            .tabViewStyle(.page(indexDisplayMode: .never))
+
         }
-        .tabViewStyle(.page(indexDisplayMode: .always))
-        .indexViewStyle(.page(backgroundDisplayMode: .always))
+
     }
+
 }
 
 private struct ArsenalView: View {
+
     let model: StyleTriggerViewModel
 
     var body: some View {
-        VStack(spacing: 16) {
-            NeonHeader(
-                kicker: "BALANCED ARCHETYPES",
-                title: "ARSENAL",
-                icon: "bolt.horizontal.fill"
-            )
 
-            HStack(spacing: 16) {
-                ForEach(model.content?.weapons ?? []) { weapon in
-                    Button {
-                        model.selectWeapon(weapon.id)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Image(
-                                systemName: weapon.id == "neon-edge"
-                                    ? "bolt.fill" : "flame.fill"
-                            )
-                            .font(.largeTitle)
-                            .foregroundStyle(
-                                weapon.id == "neon-edge"
-                                    ? StyleTriggerPalette.cyan
-                                    : StyleTriggerPalette.magenta
-                            )
-                            Text(weapon.name)
-                                .font(.title3.monospaced().weight(.black))
-                            Text(
-                                weapon.id == "neon-edge"
-                                    ? "PRECISION / CANCELS"
-                                    : "MOMENTUM / LAUNCHERS"
-                            )
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
-                            Label(
-                                model.progress.selectedWeaponID == weapon.id
-                                    ? "EQUIPPED" : "EQUIP",
-                                systemImage: model.progress.selectedWeaponID
-                                    == weapon.id
-                                    ? "checkmark.circle.fill" : "circle"
-                            )
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(StyleTriggerPalette.cyan)
-                        }
-                        .frame(
-                            maxWidth: .infinity,
-                            minHeight: 170,
-                            alignment: .leading
-                        )
-                        .padding(18)
-                        .background(
-                            StyleTriggerPalette.panel.opacity(0.88),
-                            in: RoundedRectangle(cornerRadius: 18)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 18)
-                                .stroke(
-                                    model.progress.selectedWeaponID == weapon.id
+        ScrollView {
+
+            VStack(spacing: 18) {
+
+                NeonHeader(
+
+                    kicker: "BALANCED ARCHETYPES",
+
+                    title: "ARSENAL",
+
+                    icon: "bolt.horizontal.fill"
+
+                )
+
+                LazyVGrid(
+
+                    columns: [GridItem(.adaptive(minimum: 150), spacing: 12)],
+
+                    spacing: 12
+
+                ) {
+
+                    ForEach(model.content?.weapons ?? []) { weapon in
+
+                        let unlocked = model.progress.unlockedWeaponIDs
+                            .contains(weapon.id)
+
+                        let compatible =
+                            model.selectedCharacter?.compatibleWeaponIDs
+                            .contains(weapon.id) == true
+
+                        Button {
+
+                            model.selectWeapon(weapon.id)
+
+                        } label: {
+
+                            VStack(alignment: .leading, spacing: 10) {
+
+                                WeaponIcon(
+
+                                    type: weapon.type,
+
+                                    color: compatible
                                         ? StyleTriggerPalette.cyan
-                                        : StyleTriggerPalette.silver.opacity(
-                                            0.14
-                                        ),
-                                    lineWidth: 1.5
-                                )
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 40)
+                                        : StyleTriggerPalette.magenta
 
-            Text("Weapons change routes and timing — never raw power.")
-                .font(.caption.monospaced())
-                .foregroundStyle(StyleTriggerPalette.silver.opacity(0.55))
+                                )
+
+                                .frame(height: 48)
+
+                                Text(weapon.name)
+
+                                    .font(
+                                        .subheadline.monospaced().weight(.black)
+                                    )
+
+                                    .lineLimit(2)
+
+                                Text(
+                                    "DMG \(weapon.damage)  SPD \(weapon.attackSpeed, format: .number.precision(.fractionLength(2)))"
+                                )
+
+                                .font(.caption2.monospaced())
+
+                                .foregroundStyle(.secondary)
+
+                                Label(
+
+                                    !unlocked
+                                        ? "LOCKED"
+                                        : (!compatible
+                                            ? "INCOMPATIBLE"
+                                            : (model.progress.selectedWeaponID
+                                                == weapon.id
+                                                ? "ACTIVE" : "EQUIP")),
+
+                                    systemImage: !unlocked
+                                        ? "lock.fill"
+                                        : (model.progress.selectedWeaponID
+                                            == weapon.id
+                                            ? "checkmark.circle.fill"
+                                            : "circle")
+
+                                )
+
+                                .font(.caption2.weight(.bold))
+
+                                .foregroundStyle(
+                                    compatible && unlocked
+                                        ? StyleTriggerPalette.cyan : .secondary
+                                )
+
+                            }
+
+                            .frame(
+                                maxWidth: .infinity,
+                                minHeight: 150,
+                                alignment: .leading
+                            )
+
+                            .padding(10)
+
+                            .background(
+
+                                StyleTriggerPalette.panel.opacity(0.88),
+
+                                in: RoundedRectangle(cornerRadius: 18)
+
+                            )
+
+                            .overlay(
+
+                                RoundedRectangle(cornerRadius: 18)
+
+                                    .stroke(
+
+                                        model.progress.selectedWeaponID
+                                            == weapon.id
+
+                                            ? StyleTriggerPalette.cyan
+
+                                            : StyleTriggerPalette.silver
+                                                .opacity(0.14),
+
+                                        lineWidth: 1.5
+
+                                    )
+
+                            )
+
+                        }
+
+                        .buttonStyle(.plain)
+
+                        .disabled(!unlocked || !compatible)
+
+                        .opacity(unlocked ? 1 : 0.48)
+
+                    }
+
+                }
+
+                Text("Weapons change routes and timing — never raw power.")
+
+                    .font(.caption.monospaced())
+
+                    .multilineTextAlignment(.center)
+
+                    .foregroundStyle(StyleTriggerPalette.silver.opacity(0.55))
+
+            }
+
+            .padding(.horizontal, 20)
+
+            .padding(.top, 14)
+
+            .padding(.bottom, 20)
+
         }
-        .padding(.vertical, 32)
+
     }
+
 }
 
 private struct ModeSelectView: View {
+
     let model: StyleTriggerViewModel
 
     var body: some View {
-        HStack(spacing: 28) {
-            StyleTriggerLogo()
-                .scaleEffect(0.62)
-                .frame(width: 245)
+
+        ScrollView {
 
             VStack(alignment: .leading, spacing: 12) {
+
+                StyleTriggerLogo()
+
+                    .scaleEffect(0.56)
+
+                    .frame(maxWidth: .infinity)
+
+                    .frame(height: 138)
+
                 Text("SELECT MODE")
+
                     .font(.title2.monospaced().weight(.black))
+
                     .foregroundStyle(StyleTriggerPalette.silver)
 
                 LazyVGrid(
-                    columns: [GridItem(.flexible()), GridItem(.flexible())],
+
+                    columns: [GridItem(.adaptive(minimum: 150), spacing: 12)],
+
                     spacing: 10
+
                 ) {
+
                     ForEach(model.content?.progression.modes ?? []) { mode in
+
                         ModeButton(
+
                             mode: mode,
+
                             isUnlocked: model.progress.unlockedModes.contains(
+
                                 mode.id
+
                             ),
+
                             event: mode.id == .timedEvent
+
                                 ? model.currentEvent : nil
+
                         ) {
+
                             model.openLobby(for: mode.id)
+
                         }
+
                     }
+
                 }
+
             }
-            .frame(maxWidth: 560)
+
+            .padding(.horizontal, 20)
+
+            .padding(.top, 4)
+
+            .padding(.bottom, 20)
+
         }
-        .padding(.horizontal, 40)
+
     }
+
 }
 
 private struct ModeButton: View {
+
     let mode: GameModeDefinition
+
     let isUnlocked: Bool
+
     let event: TimedEventDefinition?
+
     let action: () -> Void
 
     var body: some View {
+
         Button(action: action) {
+
             VStack(alignment: .leading, spacing: 5) {
+
                 HStack {
+
                     Image(systemName: isUnlocked ? "bolt.fill" : "lock.fill")
+
                     Text(mode.id.displayName)
+
                     Spacer()
+
                 }
+
                 .font(.headline.monospaced().weight(.black))
+
                 .foregroundStyle(
+
                     isUnlocked
+
                         ? StyleTriggerPalette.cyan
+
                         : StyleTriggerPalette.silver.opacity(0.38)
+
                 )
 
                 Text(mode.description)
+
                     .font(.caption2)
+
                     .foregroundStyle(StyleTriggerPalette.silver.opacity(0.58))
-                    .lineLimit(2)
+
+                    .lineLimit(3)
 
                 if let chapter = mode.unlockAfterStoryChapter, !isUnlocked {
+
                     Text("CLEAR STORY \(chapter)")
+
                         .font(.caption2.monospaced().weight(.bold))
+
                         .foregroundStyle(StyleTriggerPalette.magenta)
+
                 }
 
                 if let event {
+
                     EventCountdown(endDate: event.endsAt)
+
                 }
+
             }
-            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-            .padding(12)
+
+            .frame(maxWidth: .infinity, minHeight: 82, alignment: .leading)
+
+            .padding(10)
+
             .background(
+
                 StyleTriggerPalette.panel.opacity(0.9),
+
                 in: RoundedRectangle(cornerRadius: 12)
+
             )
+
             .overlay(
+
                 RoundedRectangle(cornerRadius: 12).stroke(
+
                     StyleTriggerPalette.silver.opacity(0.12)
+
                 )
+
             )
+
         }
+
         .buttonStyle(.plain)
+
         .disabled(!isUnlocked)
+
     }
+
 }
 
 private struct EventCountdown: View {
+
     let endDate: Date
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
+
+        TimelineView(.periodic(from: .now, by: 30)) { context in
+
             let remaining = max(0, Int(endDate.timeIntervalSince(context.date)))
+
             Text("ENDS \(remaining / 86_400)D \((remaining % 86_400) / 3_600)H")
+
                 .font(.caption2.monospaced().weight(.black))
+
                 .foregroundStyle(StyleTriggerPalette.magenta)
+
         }
+
     }
+
 }
 
 private struct ComboAndSettingsView: View {
+
     let model: StyleTriggerViewModel
 
     var body: some View {
-        HStack(spacing: 24) {
+
+        ScrollView {
+
             VStack(alignment: .leading, spacing: 10) {
+
                 NeonHeader(
+
                     kicker: model.selectedWeapon?.name ?? "WEAPON",
+
                     title: "COMBO BOOK",
+
                     icon: "book.closed.fill"
+
                 )
 
-                ScrollView {
-                    VStack(spacing: 8) {
-                        ForEach(model.availableCombos) { combo in
-                            ComboRow(combo: combo)
-                        }
-                    }
-                }
-            }
+                VStack(spacing: 8) {
 
-            VStack(spacing: 12) {
+                    ForEach(model.availableCombos) { combo in
+
+                        ComboRow(combo: combo)
+
+                    }
+
+                }
+
                 NeonHeader(
                     kicker: "PLAYER",
                     title: "SETTINGS",
                     icon: "gearshape.fill"
                 )
 
-                SettingButton(
-                    title: "MUSIC",
-                    icon: "speaker.wave.3.fill",
-                    isOn: model.progress.isSoundEnabled
-                ) {
-                    model.setSoundEnabled(!model.progress.isSoundEnabled)
-                }
-
-                SettingButton(
-                    title: "HAPTICS",
-                    icon: "waveform",
-                    isOn: model.progress.isHapticsEnabled
-                ) {
-                    model.setHapticsEnabled(!model.progress.isHapticsEnabled)
-                }
-
                 ScoreSummary(progress: model.progress)
+
             }
-            .frame(width: 280)
+
+            .padding(.horizontal, 20)
+
+            .padding(.top, 14)
+
+            .padding(.bottom, 24)
+
         }
-        .padding(.horizontal, 44)
-        .padding(.vertical, 28)
+
     }
+
 }
 
 private struct ComboRow: View {
+
     let combo: ComboDefinition
 
     var body: some View {
-        HStack {
+
+        VStack(alignment: .leading, spacing: 10) {
+
             VStack(alignment: .leading, spacing: 4) {
+
                 Text(combo.name)
+
                     .font(.headline.monospaced().weight(.black))
+
                 Text(combo.isAirLauncher ? "AIR LAUNCHER" : "GROUND ROUTE")
+
                     .font(.caption2.monospaced())
+
                     .foregroundStyle(StyleTriggerPalette.magenta)
+
             }
 
-            Spacer()
-
-            HStack(spacing: 5) {
-                ForEach(Array(combo.inputSequence.enumerated()), id: \.offset) {
-                    _,
-                    input in
-                    Text(input.symbol)
-                        .font(.headline.weight(.black))
-                        .frame(width: 30, height: 30)
-                        .background(
-                            StyleTriggerPalette.cyan.opacity(0.12),
-                            in: Circle()
-                        )
-                }
-            }
-
-            Text("+\(combo.stylePoints)")
-                .font(.caption.monospaced().weight(.black))
-                .foregroundStyle(StyleTriggerPalette.cyan)
-                .frame(width: 55, alignment: .trailing)
-        }
-        .padding(12)
-        .background(
-            StyleTriggerPalette.panel.opacity(0.82),
-            in: RoundedRectangle(cornerRadius: 12)
-        )
-    }
-}
-
-private struct SettingButton: View {
-    let title: LocalizedStringResource
-    let icon: String
-    let isOn: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
             HStack {
-                Label(title, systemImage: icon)
+
+                HStack(spacing: 5) {
+
+                    ForEach(
+                        Array(combo.inputSequence.enumerated()),
+                        id: \.offset
+                    ) {
+
+                        _,
+                        input in
+
+                        Text(input.symbol)
+
+                            .font(.headline.weight(.black))
+
+                            .frame(width: 30, height: 30)
+
+                            .background(
+
+                                StyleTriggerPalette.cyan.opacity(0.12),
+
+                                in: Circle()
+
+                            )
+
+                    }
+
+                }
+
                 Spacer()
-                Text(isOn ? "ON" : "OFF")
-                    .foregroundStyle(
-                        isOn
-                            ? StyleTriggerPalette.cyan
-                            : StyleTriggerPalette.magenta
-                    )
+
+                Text("+\(combo.stylePoints)")
+
+                    .font(.caption.monospaced().weight(.black))
+
+                    .foregroundStyle(StyleTriggerPalette.cyan)
+
             }
-            .font(.headline.monospaced().weight(.bold))
-            .padding(14)
-            .background(
-                StyleTriggerPalette.panel,
-                in: RoundedRectangle(cornerRadius: 12)
-            )
+
         }
-        .buttonStyle(.plain)
+
+        .padding(12)
+
+        .background(
+
+            StyleTriggerPalette.panel.opacity(0.82),
+
+            in: RoundedRectangle(cornerRadius: 12)
+
+        )
+
     }
+
 }
 
 private struct ScoreSummary: View {
+
     let progress: PlayerProgress
 
     var body: some View {
+
         VStack(alignment: .leading, spacing: 8) {
+
             Text("HIGH SCORES")
+
                 .font(.caption.monospaced().weight(.black))
+
                 .foregroundStyle(.secondary)
+
             ForEach(GameModeKind.allCases) { mode in
+
                 HStack {
+
                     Text(mode.displayName)
+
                     Spacer()
+
                     Text(progress.highScores[mode, default: 0], format: .number)
+
                         .foregroundStyle(StyleTriggerPalette.cyan)
+
                 }
+
                 .font(.caption.monospaced())
+
             }
+
         }
+
         .padding(14)
+
         .background(
+
             StyleTriggerPalette.panel,
+
             in: RoundedRectangle(cornerRadius: 12)
+
         )
+
     }
+
 }
 
 private struct MatchLobbyView: View {
+
     let model: StyleTriggerViewModel
+
+    @State private var step = LobbyStep.character
+
+    @State private var detailCharacter: GameCharacter?
+
     private let environments = [
+
         ("neon-rooftop", "NEON ROOFTOP"),
+
         ("void-cathedral", "VOID CATHEDRAL"),
+
         ("chrome-subway", "CHROME SUBWAY"),
+
     ]
 
     var body: some View {
-        VStack(spacing: 16) {
+
+        VStack(spacing: 12) {
+
             HStack {
+
                 Button("BACK", systemImage: "chevron.left") {
-                    model.returnToMenu()
+
+                    if step == .character {
+
+                        model.returnToMenu()
+
+                    } else {
+
+                        step = step.previous
+
+                    }
+
                 }
+
                 Spacer()
-                NeonHeader(
-                    kicker: model.selectedMode.displayName,
-                    title: "PREPARE",
-                    icon: "scope"
-                )
-                Spacer()
-                Button(
-                    model.selectedMode == .versus ? "FIND FIGHT" : "FIGHT",
-                    systemImage: model.selectedMode == .versus
-                        ? "person.2.fill" : "bolt.fill"
-                ) {
-                    model.startSelectedMatch()
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(StyleTriggerPalette.magenta)
+
+                Text("\(step.rawValue + 1) / 3")
+
+                    .font(.caption.monospaced().weight(.black))
+
+                    .foregroundStyle(StyleTriggerPalette.cyan)
+
             }
 
-            HStack(spacing: 24) {
-                SelectionPanel(title: "CHARACTER") {
-                    ForEach(model.content?.characters ?? []) { character in
-                        SelectChip(
-                            title: character.name,
-                            subtitle: character.description,
-                            isSelected: model.progress.selectedCharacterID
-                                == character.id,
-                            isEnabled: character.unlocked
+            NeonHeader(
+
+                kicker: model.selectedMode.displayName,
+
+                title: step.title,
+
+                icon: step.icon
+
+            )
+
+            ScrollView {
+
+                VStack(spacing: 16) {
+
+                    switch step {
+
+                    case .character:
+
+                        LazyVGrid(
+
+                            columns: [
+                                GridItem(.adaptive(minimum: 150), spacing: 12)
+                            ],
+
+                            spacing: 12
+
                         ) {
-                            model.selectCharacter(character.id)
-                        }
-                    }
-                }
 
-                SelectionPanel(title: "ENVIRONMENT") {
-                    ForEach(environments, id: \.0) { environment in
-                        SelectChip(
-                            title: environment.1,
-                            subtitle: environment.0,
-                            isSelected: model.progress.selectedEnvironmentID
-                                == environment.0,
-                            isEnabled: true
-                        ) {
-                            model.selectEnvironment(environment.0)
-                        }
-                    }
+                            ForEach(model.content?.characters ?? []) {
+                                character in
 
-                    Button("RANDOM", systemImage: "shuffle") {
-                        model.chooseRandomEnvironment()
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(StyleTriggerPalette.cyan)
-                }
+                                CharacterSelectionCard(
 
-                SelectionPanel(title: "RULES") {
-                    Picker(
-                        "Difficulty",
-                        selection: Bindable(model).selectedDifficulty
-                    ) {
-                        Text("EASY").tag("EASY")
-                        Text("NORMAL").tag("NORMAL")
-                        Text("HELL").tag("HELL")
-                    }
-                    .pickerStyle(.segmented)
+                                    character: character,
 
-                    if model.selectedMode == .versus {
-                        Picker(
-                            "Team Size",
-                            selection: Bindable(model).selectedTeamSize
-                        ) {
-                            ForEach(1...4, id: \.self) { size in
-                                Text("\(size)V\(size)").tag(size)
+                                    isSelected: model.progress
+                                        .selectedCharacterID == character.id,
+
+                                    isUnlocked: model.isCharacterUnlocked(
+                                        character
+                                    ),
+
+                                    select: {
+                                        model.selectCharacter(character.id)
+                                    },
+
+                                    showDetails: { detailCharacter = character }
+
+                                )
+
                             }
-                        }
-                        .pickerStyle(.segmented)
 
-                        Label(
-                            model.multiplayer.state.label,
-                            systemImage: model.multiplayer.isConnected
-                                ? "network" : "gamecontroller.fill"
+                        }
+
+                    case .environment:
+
+                        LazyVGrid(columns: [GridItem(.flexible())], spacing: 14)
+                        {
+
+                            ForEach(environments, id: \.0) { environment in
+
+                                EnvironmentSelectionCard(
+
+                                    id: environment.0,
+
+                                    name: environment.1,
+
+                                    isSelected: model.progress
+                                        .selectedEnvironmentID == environment.0
+
+                                ) {
+
+                                    model.selectEnvironment(environment.0)
+
+                                }
+
+                            }
+
+                        }
+
+                        Button("RANDOM ARENA", systemImage: "shuffle") {
+
+                            model.chooseRandomEnvironment()
+
+                        }
+
+                        .buttonStyle(.bordered)
+
+                        .tint(StyleTriggerPalette.cyan)
+
+                    case .ready:
+
+                        ReadyMatchCard(model: model)
+
+                        StyleTriggerDifficultyPicker(
+
+                            selection: Bindable(model).selectedDifficulty
+
                         )
-                        .font(.caption.monospaced().weight(.bold))
-                        .foregroundStyle(
-                            model.multiplayer.isAuthenticated
-                                ? StyleTriggerPalette.cyan
-                                : StyleTriggerPalette.magenta
-                        )
+
+                        if model.selectedMode == .versus {
+
+                            Picker(
+
+                                "Team Size",
+
+                                selection: Bindable(model).selectedTeamSize
+
+                            ) {
+
+                                ForEach(1...4, id: \.self) { size in
+
+                                    Text("\(size)V\(size)").tag(size)
+
+                                }
+
+                            }
+
+                            .pickerStyle(.segmented)
+
+                        }
+
+                        Button {
+
+                            model.startSelectedMatch()
+
+                        } label: {
+
+                            Label(
+
+                                model.selectedMode == .versus
+                                    ? "FIND FIGHT" : "START GAME",
+
+                                systemImage: model.selectedMode == .versus
+
+                                    ? "person.2.fill" : "bolt.fill"
+
+                            )
+
+                            .font(.headline.monospaced().weight(.black))
+
+                            .frame(maxWidth: .infinity)
+
+                            .padding(.vertical, 14)
+
+                        }
+
+                        .buttonStyle(.borderedProminent)
+
+                        .tint(StyleTriggerPalette.magenta)
+
                     }
 
-                    Text("Weapon: \(model.selectedWeapon?.name ?? "NONE")")
-                        .font(.caption.monospaced().weight(.bold))
-                        .foregroundStyle(StyleTriggerPalette.cyan)
                 }
+
+                .padding(.bottom, 12)
+
             }
+
+            if step != .ready {
+
+                Button {
+
+                    step = step.next
+
+                } label: {
+
+                    Label("CONTINUE", systemImage: "chevron.right")
+
+                        .font(.headline.monospaced().weight(.black))
+
+                        .frame(maxWidth: .infinity)
+
+                        .padding(.vertical, 12)
+
+                }
+
+                .buttonStyle(StyleTriggerPrimaryButtonStyle())
+
+                .padding(.bottom, 6)
+
+            }
+
         }
-        .padding(28)
+
+        .padding(.horizontal, 20)
+
+        .padding(.top, 12)
+
         .buttonStyle(.plain)
+
+        .sheet(item: $detailCharacter) { character in
+
+            CharacterDetailView(model: model, character: character)
+
+                .presentationDetents([.large])
+
+                .presentationDragIndicator(.visible)
+
+        }
+
     }
+
 }
 
-private struct SelectionPanel<Content: View>: View {
-    let title: LocalizedStringResource
-    @ViewBuilder let content: Content
+private enum LobbyStep: Int {
+
+    case character
+
+    case environment
+
+    case ready
+
+    var title: LocalizedStringResource {
+
+        switch self {
+
+        case .character: "CHOOSE FIGHTER"
+
+        case .environment: "CHOOSE ARENA"
+
+        case .ready: "READY TO FIGHT"
+
+        }
+
+    }
+
+    var icon: String {
+
+        switch self {
+
+        case .character: "person.fill"
+
+        case .environment: "building.2.fill"
+
+        case .ready: "bolt.fill"
+
+        }
+
+    }
+
+    var next: LobbyStep { LobbyStep(rawValue: rawValue + 1) ?? .ready }
+
+    var previous: LobbyStep { LobbyStep(rawValue: rawValue - 1) ?? .character }
+
+}
+
+private struct CharacterSelectionCard: View {
+
+    let character: GameCharacter
+
+    let isSelected: Bool
+
+    let isUnlocked: Bool
+
+    let select: () -> Void
+
+    let showDetails: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title)
-                .font(.headline.monospaced().weight(.black))
-            content
-            Spacer()
+
+        VStack(spacing: 8) {
+
+            StyleTriggerFighterArtwork(
+
+                name: character.name,
+
+                appearance: character.appearance
+
+            )
+
+            .frame(height: 120)
+
+            .opacity(isUnlocked ? 1 : 0.42)
+
+            VStack(spacing: 4) {
+
+                Text(character.name)
+
+                    .font(.headline.monospaced().weight(.black))
+
+                Text(character.description)
+
+                    .font(.caption2)
+
+                    .foregroundStyle(.secondary)
+
+                    .lineLimit(3)
+
+                    .frame(minHeight: 34, alignment: .top)
+
+            }
+
+            HStack(spacing: 6) {
+
+                Button(action: showDetails) {
+
+                    Image(systemName: "info.circle")
+
+                        .frame(width: 32, height: 28)
+
+                }
+
+                .foregroundStyle(StyleTriggerPalette.silver)
+
+                Button(action: select) {
+
+                    Label(
+
+                        isUnlocked
+                            ? (isSelected ? "SELECTED" : "SELECT") : "LOCKED",
+
+                        systemImage: isUnlocked
+
+                            ? (isSelected ? "checkmark.circle.fill" : "circle")
+                            : "lock.fill"
+
+                    )
+
+                    .font(.caption2.monospaced().weight(.black))
+
+                    .frame(maxWidth: .infinity)
+
+                    .frame(height: 28)
+
+                }
+
+                .disabled(!isUnlocked)
+
+                .foregroundStyle(
+                    isSelected ? StyleTriggerPalette.cyan : .secondary
+                )
+
+            }
+
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
+
+        .frame(maxWidth: .infinity)
+
+        .padding(8)
+
         .background(
-            StyleTriggerPalette.panel.opacity(0.88),
-            in: RoundedRectangle(cornerRadius: 16)
+            StyleTriggerPalette.panel.opacity(0.9),
+            in: RoundedRectangle(cornerRadius: 14)
         )
+
+        .overlay {
+
+            RoundedRectangle(cornerRadius: 14)
+
+                .stroke(
+                    isSelected
+                        ? StyleTriggerPalette.cyan : .white.opacity(0.12),
+                    lineWidth: 2
+                )
+
+        }
+
     }
+
 }
 
-private struct SelectChip: View {
-    let title: String
-    let subtitle: String
+private struct CharacterDetailView: View {
+
+    @Environment(\.dismiss) private var dismiss
+
+    let model: StyleTriggerViewModel
+
+    let character: GameCharacter
+
+    var body: some View {
+
+        ZStack {
+
+            StyleTriggerBackground()
+
+            ScrollView {
+
+                VStack(spacing: 14) {
+
+                    HStack {
+
+                        Text(character.name)
+
+                            .font(.title.monospaced().weight(.black))
+
+                        Spacer()
+
+                        Button("DONE", action: dismiss.callAsFunction)
+
+                            .font(.caption.monospaced().weight(.black))
+
+                            .foregroundStyle(StyleTriggerPalette.cyan)
+
+                    }
+
+                    StyleTriggerFighterArtwork(
+
+                        name: character.name,
+
+                        appearance: activeAppearance
+
+                    )
+
+                    .frame(height: 250)
+
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+
+                    Text(character.description)
+
+                        .font(.subheadline)
+
+                        .foregroundStyle(
+                            StyleTriggerPalette.silver.opacity(0.72)
+                        )
+
+                    detailSection("SKINS") {
+
+                        LazyVGrid(
+                            columns: [
+                                GridItem(.adaptive(minimum: 150), spacing: 12)
+                            ],
+                            spacing: 8
+                        ) {
+
+                            ForEach(model.skins(for: character)) { skin in
+
+                                let unlocked = model.progress.unlockedSkinIDs
+                                    .contains(skin.id)
+
+                                Button {
+
+                                    model.selectSkin(skin.id, for: character.id)
+
+                                } label: {
+
+                                    Label(
+
+                                        skin.name,
+
+                                        systemImage: unlocked
+                                            ? "circle.hexagongrid.fill"
+                                            : "lock.fill"
+
+                                    )
+
+                                    .font(.caption.monospaced().weight(.black))
+
+                                    .frame(maxWidth: .infinity)
+
+                                    .padding(10)
+
+                                    .background(
+
+                                        selectedSkinID == skin.id
+
+                                            ? StyleTriggerPalette.cyan.opacity(
+                                                0.2
+                                            )
+
+                                            : StyleTriggerPalette.raisedPanel,
+
+                                        in: RoundedRectangle(cornerRadius: 9)
+
+                                    )
+
+                                }
+
+                                .disabled(
+                                    !unlocked
+                                        || !model.isCharacterUnlocked(character)
+                                )
+
+                            }
+
+                        }
+
+                    }
+
+                    detailSection("WEAPONS") {
+
+                        ForEach(model.compatibleWeapons(for: character)) {
+                            weapon in
+
+                            let equipped = equippedIDs.contains(weapon.id)
+
+                            let unlocked = model.progress.unlockedWeaponIDs
+                                .contains(weapon.id)
+
+                            Button {
+
+                                if model.progress.selectedCharacterID
+                                    == character.id
+                                {
+
+                                    model.toggleEquippedWeapon(weapon.id)
+
+                                }
+
+                            } label: {
+
+                                HStack {
+
+                                    WeaponIcon(
+                                        type: weapon.type,
+                                        color: Color(
+                                            hex: character.appearance
+                                                .weaponColor
+                                        )
+                                    )
+
+                                    .frame(width: 42, height: 42)
+
+                                    VStack(alignment: .leading) {
+
+                                        Text(weapon.name)
+
+                                            .font(
+                                                .caption.monospaced().weight(
+                                                    .black
+                                                )
+                                            )
+
+                                        Text(
+                                            "DMG \(weapon.damage)  SPD \(weapon.attackSpeed, format: .number.precision(.fractionLength(2)))"
+                                        )
+
+                                        .font(.caption2.monospaced())
+
+                                        .foregroundStyle(.secondary)
+
+                                    }
+
+                                    Spacer()
+
+                                    Image(
+                                        systemName: unlocked
+                                            ? (equipped
+                                                ? "checkmark.circle.fill"
+                                                : "circle") : "lock.fill"
+                                    )
+
+                                }
+
+                                .padding(9)
+
+                                .background(
+                                    StyleTriggerPalette.raisedPanel,
+                                    in: RoundedRectangle(cornerRadius: 9)
+                                )
+
+                            }
+
+                            .disabled(
+                                !unlocked
+                                    || model.progress.selectedCharacterID
+                                        != character.id
+                            )
+
+                        }
+
+                    }
+
+                    detailSection("COMBOS") {
+
+                        ForEach(characterCombos) { combo in
+
+                            ComboRow(combo: combo)
+
+                        }
+
+                    }
+
+                }
+
+                .padding(18)
+
+            }
+
+        }
+
+        .preferredColorScheme(.dark)
+
+    }
+
+    private var selectedSkinID: String? {
+
+        model.progress.selectedSkinByCharacter[character.id]
+
+    }
+
+    private var activeAppearance: CharacterAppearance {
+
+        model.skins(for: character).first { $0.id == selectedSkinID }?
+            .appearance
+
+            ?? character.appearance
+
+    }
+
+    private var equippedIDs: Set<String> {
+
+        Set(
+            model.progress.equippedWeaponIDsByCharacter[character.id]
+                ?? character.defaultWeaponIDs
+        )
+
+    }
+
+    private var characterCombos: [ComboDefinition] {
+
+        let ids = Set(character.baseComboList)
+
+        return model.content?.combos.filter { ids.contains($0.id) } ?? []
+
+    }
+
+    private func detailSection<Content: View>(
+
+        _ title: LocalizedStringResource,
+
+        @ViewBuilder content: () -> Content
+
+    ) -> some View {
+
+        VStack(alignment: .leading, spacing: 8) {
+
+            Text(title)
+
+                .font(.caption.monospaced().weight(.black))
+
+                .foregroundStyle(StyleTriggerPalette.cyan)
+
+            content()
+
+        }
+
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+    }
+
+}
+
+private struct EnvironmentSelectionCard: View {
+
+    let id: String
+
+    let name: String
+
     let isSelected: Bool
-    let isEnabled: Bool
+
     let action: () -> Void
 
     var body: some View {
+
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 3) {
-                HStack {
-                    Text(title)
-                        .font(.subheadline.monospaced().weight(.black))
-                    Spacer()
-                    Image(
-                        systemName: isEnabled
-                            ? (isSelected ? "checkmark.circle.fill" : "circle")
-                            : "lock.fill"
-                    )
-                }
-                Text(subtitle)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-            .padding(10)
-            .background(
-                (isSelected
-                    ? StyleTriggerPalette.cyan.opacity(0.12) : Color.clear),
-                in: RoundedRectangle(cornerRadius: 10)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10).stroke(
-                    isSelected ? StyleTriggerPalette.cyan : .white.opacity(0.1)
+
+            ZStack(alignment: .bottomLeading) {
+
+                ArenaPreview(environmentID: id)
+
+                    .frame(height: 106)
+
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.9)],
+                    startPoint: .top,
+                    endPoint: .bottom
                 )
-            )
+
+                HStack {
+
+                    Text(name)
+
+                        .font(.headline.monospaced().weight(.black))
+
+                    Spacer()
+
+                    Image(
+                        systemName: isSelected
+                            ? "checkmark.circle.fill" : "circle"
+                    )
+
+                    .foregroundStyle(StyleTriggerPalette.cyan)
+
+                }
+
+                .padding(14)
+
+            }
+
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+
+            .overlay {
+
+                RoundedRectangle(cornerRadius: 16)
+
+                    .stroke(
+                        isSelected
+                            ? StyleTriggerPalette.cyan : .white.opacity(0.12),
+                        lineWidth: 2
+                    )
+
+            }
+
         }
-        .disabled(!isEnabled)
+
     }
+
+}
+
+private struct ArenaPreview: View {
+
+    let environmentID: String
+
+    var body: some View {
+
+        GeometryReader { proxy in
+
+            ZStack {
+
+                LinearGradient(
+                    colors: colors,
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+                ForEach(0..<7, id: \.self) { index in
+
+                    Rectangle()
+
+                        .fill(
+                            index.isMultiple(of: 2)
+                                ? StyleTriggerPalette.cyan.opacity(0.25)
+                                : StyleTriggerPalette.magenta.opacity(0.18)
+                        )
+
+                        .frame(
+                            width: proxy.size.width / 10,
+                            height: CGFloat(45 + index * 15)
+                        )
+
+                        .position(
+                            x: CGFloat(index) * proxy.size.width / 6,
+                            y: proxy.size.height * 0.67
+                        )
+
+                }
+
+                Path { path in
+
+                    path.move(to: CGPoint(x: 0, y: proxy.size.height * 0.72))
+
+                    path.addLine(
+                        to: CGPoint(
+                            x: proxy.size.width,
+                            y: proxy.size.height * 0.58
+                        )
+                    )
+
+                    path.addLine(
+                        to: CGPoint(x: proxy.size.width, y: proxy.size.height)
+                    )
+
+                    path.addLine(to: CGPoint(x: 0, y: proxy.size.height))
+
+                    path.closeSubpath()
+
+                }
+
+                .fill(.black.opacity(0.62))
+
+                Image(systemName: symbol)
+
+                    .font(.system(size: 54, weight: .thin))
+
+                    .foregroundStyle(StyleTriggerPalette.silver.opacity(0.5))
+
+            }
+
+        }
+
+    }
+
+    private var colors: [Color] {
+
+        switch environmentID {
+
+        case "void-cathedral": [Color(hex: "30103D"), Color(hex: "09050D")]
+
+        case "chrome-subway": [Color(hex: "1B3B45"), Color(hex: "070A0B")]
+
+        default: [Color(hex: "073D4B"), Color(hex: "090A12")]
+
+        }
+
+    }
+
+    private var symbol: String {
+
+        switch environmentID {
+
+        case "void-cathedral": "building.columns.fill"
+
+        case "chrome-subway": "tram.fill"
+
+        default: "building.2.crop.circle.fill"
+
+        }
+
+    }
+
+}
+
+private struct ReadyMatchCard: View {
+
+    let model: StyleTriggerViewModel
+
+    var body: some View {
+
+        VStack(spacing: 12) {
+
+            if let character = model.selectedCharacter,
+
+                let appearance = model.selectedAppearance
+
+            {
+
+                StyleTriggerFighterArtwork(
+
+                    name: character.name,
+
+                    appearance: appearance,
+
+                    weaponType: model.selectedWeapon?.type
+
+                )
+
+                .frame(height: 130)
+
+            }
+
+            ArenaPreview(environmentID: model.progress.selectedEnvironmentID)
+
+                .frame(height: 100)
+
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            HStack {
+
+                Text(model.selectedCharacter?.name ?? "FIGHTER")
+
+                Spacer()
+
+                Text(environmentName)
+
+                    .foregroundStyle(StyleTriggerPalette.cyan)
+
+            }
+
+            .font(.headline.monospaced().weight(.black))
+
+        }
+
+        .padding(14)
+
+        .background(
+            StyleTriggerPalette.panel.opacity(0.9),
+            in: RoundedRectangle(cornerRadius: 18)
+        )
+
+    }
+
+    private var environmentName: String {
+
+        switch model.progress.selectedEnvironmentID {
+
+        case "void-cathedral": "VOID CATHEDRAL"
+
+        case "chrome-subway": "CHROME SUBWAY"
+
+        default: "NEON ROOFTOP"
+
+        }
+
+    }
+
 }
 
 private struct CombatScreen: View {
+
     let model: StyleTriggerViewModel
+
     @State private var scene = ActionGameScene(
-        size: CGSize(width: 844, height: 390)
+
+        size: CGSize(width: 390, height: 844)
+
     )
 
     var body: some View {
+
         ZStack {
+
             SpriteView(scene: scene, options: [.ignoresSiblingOrder])
+
                 .ignoresSafeArea()
 
             VStack {
+
                 CombatHUD(model: model)
+
                 Spacer()
+
             }
 
+            .padding(.top, 34)
+
             HStack {
+
                 VStack {
+
                     Spacer()
+
                     Button("EXIT", systemImage: "xmark") {
+
                         model.finishMatch(didWin: false)
+
                     }
+
                     .buttonStyle(.bordered)
+
                     .tint(StyleTriggerPalette.magenta)
+
                 }
+
                 Spacer()
-            }
-            .padding(18)
-        }
-        .onAppear {
-            scene.scaleMode = .aspectFill
-            scene.configure(combos: model.availableCombos)
-            scene.onCombatSnapshot = { snapshot in
-                model.receiveCombatSnapshot(snapshot)
-            }
-            scene.onLocalInput = { input in
-                if model.selectedMode == .versus {
-                    model.multiplayer.send(input)
+
+                if model.equippedWeapons.count > 1 {
+
+                    VStack {
+
+                        Spacer()
+
+                        Button {
+
+                            scene.switchWeapon()
+
+                        } label: {
+
+                            Label(
+
+                                model.selectedWeapon?.name ?? "SWITCH",
+
+                                systemImage: "arrow.triangle.2.circlepath"
+
+                            )
+
+                            .font(.caption2.monospaced().weight(.black))
+
+                        }
+
+                        .buttonStyle(
+                            StyleTriggerPrimaryButtonStyle(
+                                color: StyleTriggerPalette.cyan
+                            )
+                        )
+
+                        .frame(maxWidth: 145)
+
+                    }
+
                 }
+
             }
-            scene.onGameOver = { score in
-                let snapshot = CombatSnapshot(
-                    playerHealth: 0,
-                    enemyHealth: model.combat.enemyHealth,
-                    comboCount: model.combat.comboCount,
-                    score: score,
-                    totalDamage: model.combat.totalDamage,
-                    styleRank: model.combat.styleRank
+
+            .padding(18)
+
+        }
+
+        .onAppear {
+
+            scene.scaleMode = .aspectFill
+
+            if let appearance = model.selectedAppearance {
+
+                scene.configure(
+
+                    appearance: appearance,
+
+                    weapons: model.equippedWeapons,
+
+                    activeWeaponID: model.progress.selectedWeaponID,
+
+                    combos: model.content?.combos ?? [],
+
+                    targetFrameRate: model.progress.targetFrameRate,
+
+                    graphicsQuality: model.progress.graphicsQuality,
+
+                    effectsEnabled: model.progress.combatEffectsEnabled,
+
+                    screenShakeEnabled: model.progress.screenShakeEnabled
+
                 )
+
+            }
+
+            scene.onCombatSnapshot = { snapshot in
+
                 model.receiveCombatSnapshot(snapshot)
+
             }
+
+            scene.onLocalInput = { input in
+
+                if model.selectedMode == .versus {
+
+                    model.multiplayer.send(input)
+
+                }
+
+            }
+
+            scene.onWeaponChanged = { weaponID in
+
+                model.selectWeapon(weaponID)
+
+            }
+
+            scene.onGameOver = { score in
+
+                let snapshot = CombatSnapshot(
+
+                    playerHealth: 0,
+
+                    enemyHealth: model.combat.enemyHealth,
+
+                    comboCount: model.combat.comboCount,
+
+                    score: score,
+
+                    totalDamage: model.combat.totalDamage,
+
+                    styleRank: model.combat.styleRank
+
+                )
+
+                model.receiveCombatSnapshot(snapshot)
+
+            }
+
         }
+
         .onChange(of: model.screen) { _, screen in
+
             scene.isPaused = screen != .combat
+
         }
+
         .onChange(of: model.multiplayer.remoteInputSequence) { _, _ in
+
             if let input = model.multiplayer.remoteInput {
+
                 scene.receiveRemoteInput(input)
+
             }
+
         }
+
     }
+
 }
 
 private struct CombatHUD: View {
+
     let model: StyleTriggerViewModel
 
     var body: some View {
-        HStack(spacing: 22) {
-            FighterHUD(
+
+        HStack(spacing: 8) {
+
+            StyleTriggerBattleBar(
+
                 name: model.selectedCharacter?.name ?? "VEX",
+
                 health: model.combat.playerHealth,
+
                 color: StyleTriggerPalette.cyan,
+
                 alignment: .leading
+
             )
 
             VStack(spacing: 2) {
-                Text(timeString)
-                    .font(.system(.title, design: .monospaced, weight: .black))
-                Text(model.combat.styleRank.letter)
-                    .font(
-                        .system(.largeTitle, design: .rounded, weight: .black)
-                    )
-                    .foregroundStyle(StyleTriggerPalette.magenta)
-            }
-            .frame(width: 120)
 
-            FighterHUD(
+                Text(timeString)
+
+                    .font(
+                        .system(.headline, design: .monospaced, weight: .black)
+                    )
+
+                Text(model.combat.styleRank.letter)
+
+                    .font(
+
+                        .system(.title, design: .rounded, weight: .black)
+
+                    )
+
+                    .foregroundStyle(StyleTriggerPalette.magenta)
+
+            }
+
+            .frame(width: 68)
+
+            StyleTriggerBattleBar(
+
                 name: model.content?.enemies.first?.name ?? "WRAITH",
+
                 health: model.combat.enemyHealth,
+
                 color: StyleTriggerPalette.magenta,
+
                 alignment: .trailing
+
             )
+
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 12)
+
+        .padding(.horizontal, 12)
+
+        .padding(.top, 8)
+
     }
 
     private var timeString: String {
+
         String(
+
             format: "%02d:%02d",
+
             model.remainingSeconds / 60,
+
             model.remainingSeconds % 60
+
         )
-    }
-}
 
-private struct FighterHUD: View {
-    let name: String
-    let health: Double
-    let color: Color
-    let alignment: HorizontalAlignment
-
-    var body: some View {
-        VStack(alignment: alignment, spacing: 5) {
-            Text(name)
-                .font(.caption.monospaced().weight(.black))
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(.black.opacity(0.7))
-                    Capsule()
-                        .fill(color)
-                        .frame(width: proxy.size.width * max(0, min(1, health)))
-                }
-            }
-            .frame(height: 10)
-            Text("HP \(Int(health * 100))")
-                .font(.caption2.monospaced())
-        }
-        .frame(maxWidth: .infinity)
     }
+
 }
 
 private struct MatchResultsView: View {
+
     let model: StyleTriggerViewModel
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text(model.result?.didWin == true ? "JACKPOT!" : "STYLE BROKEN")
-                .font(.system(.largeTitle, design: .monospaced, weight: .black))
-                .foregroundStyle(
-                    model.result?.didWin == true
-                        ? StyleTriggerPalette.cyan : StyleTriggerPalette.magenta
-                )
 
-            HStack(spacing: 12) {
-                ResultStat(
-                    title: "DAMAGE",
-                    value: "\(model.result?.totalDamage ?? 0)"
-                )
-                ResultStat(
-                    title: "HIGHEST STYLE",
-                    value: model.result?.highestStyleRank.letter ?? "D"
-                )
-                ResultStat(
-                    title: "SCORE",
-                    value: "\(model.result?.totalScore ?? 0)"
-                )
-                ResultStat(
-                    title: "CHARACTER EXP",
-                    value: "+\(model.result?.earnedExperience ?? 0)"
-                )
+        ScrollView {
+
+            VStack(spacing: 16) {
+
+                Text(model.result?.didWin == true ? "JACKPOT!" : "STYLE BROKEN")
+
+                    .font(
+                        .system(
+                            .largeTitle,
+                            design: .monospaced,
+                            weight: .black
+                        )
+                    )
+
+                    .foregroundStyle(
+
+                        model.result?.didWin == true
+
+                            ? StyleTriggerPalette.cyan
+                            : StyleTriggerPalette.magenta
+
+                    )
+
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 150), spacing: 12)],
+                    spacing: 12
+                ) {
+
+                    ResultStat(
+
+                        title: "DAMAGE",
+
+                        value: "\(model.result?.totalDamage ?? 0)"
+
+                    )
+
+                    ResultStat(
+
+                        title: "HIGHEST STYLE",
+
+                        value: model.result?.highestStyleRank.letter ?? "D"
+
+                    )
+
+                    ResultStat(
+
+                        title: "SCORE",
+
+                        value: "\(model.result?.totalScore ?? 0)"
+
+                    )
+
+                    ResultStat(
+
+                        title: "CHARACTER EXP",
+
+                        value: "+\(model.result?.earnedExperience ?? 0)"
+
+                    )
+
+                }
+
+                Button("RETURN TO MENU", systemImage: "arrow.counterclockwise")
+                {
+
+                    model.returnToMenu()
+
+                }
+
+                .buttonStyle(.borderedProminent)
+
+                .tint(StyleTriggerPalette.cyan)
+
             }
 
-            Button("RETURN TO MENU", systemImage: "arrow.counterclockwise") {
-                model.returnToMenu()
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(StyleTriggerPalette.cyan)
+            .padding(24)
+
         }
-        .padding(32)
+
     }
+
 }
 
 private struct ResultStat: View {
+
     let title: LocalizedStringResource
+
     let value: String
 
     var body: some View {
+
         VStack(spacing: 7) {
+
             Text(title)
+
                 .font(.caption.monospaced().weight(.bold))
+
                 .foregroundStyle(.secondary)
+
             Text(value)
+
                 .font(.title2.monospaced().weight(.black))
+
         }
-        .frame(minWidth: 140)
+
+        .frame(maxWidth: .infinity, minHeight: 92)
+
         .padding(16)
+
         .background(
+
             StyleTriggerPalette.panel,
+
             in: RoundedRectangle(cornerRadius: 14)
+
         )
+
     }
+
 }
 
 private struct NeonHeader: View {
+
     let kicker: String
+
     let title: LocalizedStringResource
+
     let icon: String
 
     var body: some View {
+
         VStack(spacing: 4) {
+
             Label(kicker, systemImage: icon)
+
                 .font(.caption.monospaced().weight(.bold))
+
                 .foregroundStyle(StyleTriggerPalette.cyan)
+
             Text(title)
+
                 .font(.title.monospaced().weight(.black))
+
                 .foregroundStyle(StyleTriggerPalette.silver)
+
         }
+
     }
+
 }
 
 private struct StyleTriggerBackground: View {
+
     var body: some View {
+
         RadialGradient(
+
             colors: [
+
                 StyleTriggerPalette.panel, StyleTriggerPalette.background,
+
             ],
+
             center: .center,
+
             startRadius: 20,
+
             endRadius: 650
+
         )
+
         .overlay {
+
             LinearGradient(
+
                 colors: [
+
                     StyleTriggerPalette.cyan.opacity(0.04), .clear,
+
                     StyleTriggerPalette.magenta.opacity(0.05),
+
                 ],
+
                 startPoint: .topLeading,
+
                 endPoint: .bottomTrailing
+
             )
+
         }
+
         .ignoresSafeArea()
+
     }
+
 }
 
 private struct DataErrorView: View {
+
     let message: String
+
     let retry: () -> Void
 
     var body: some View {
+
         VStack(spacing: 12) {
+
             Image(systemName: "exclamationmark.triangle.fill")
+
                 .font(.largeTitle)
+
                 .foregroundStyle(StyleTriggerPalette.magenta)
+
             Text(message)
+
                 .font(.caption.monospaced())
+
             Button("RETRY", action: retry)
+
                 .buttonStyle(.borderedProminent)
+
                 .tint(StyleTriggerPalette.cyan)
+
         }
+
         .padding()
+
     }
+
 }
 
 private struct GameCenterMatchmakerView: UIViewControllerRepresentable {
+
     let service: GameCenterMultiplayerService
 
     func makeUIViewController(context: Context) -> UIViewController {
+
         guard let controller = service.makeMatchmakerViewController() else {
+
             let fallback = UIViewController()
+
             fallback.view.backgroundColor = UIColor(
+
                 StyleTriggerPalette.background
+
             )
+
             return fallback
+
         }
+
         return controller
+
     }
 
     func updateUIViewController(
+
         _ uiViewController: UIViewController,
+
         context: Context
+
     ) {}
+
 }
 
 private struct GameCenterAuthenticationView: UIViewControllerRepresentable {
+
     let viewController: UIViewController
 
     func makeUIViewController(context: Context) -> UIViewController {
+
         viewController
+
     }
 
     func updateUIViewController(
+
         _ uiViewController: UIViewController,
+
         context: Context
+
     ) {}
+
 }
 
 extension Color {
     init(hex: String) {
-        let value = UInt64(hex, radix: 16) ?? 0
+        let cleaned = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "#", with: "")
+
+        let expanded: String
+        switch cleaned.count {
+        case 3, 4:
+            expanded = cleaned.map { "\($0)\($0)" }.joined()
+        case 6, 8:
+            expanded = cleaned
+        default:
+            self = .clear
+            return
+        }
+
+        guard let value = UInt64(expanded, radix: 16) else {
+            self = .clear
+            return
+        }
+
+        let hasAlpha = expanded.count == 8
+        let red = hasAlpha ? (value >> 24) & 0xFF : (value >> 16) & 0xFF
+        let green = hasAlpha ? (value >> 16) & 0xFF : (value >> 8) & 0xFF
+        let blue = hasAlpha ? (value >> 8) & 0xFF : value & 0xFF
+        let alpha = hasAlpha ? value & 0xFF : 255
+
         self.init(
             .sRGB,
-            red: Double((value >> 16) & 0xFF) / 255,
-            green: Double((value >> 8) & 0xFF) / 255,
-            blue: Double(value & 0xFF) / 255,
-            opacity: 1
+            red: Double(red) / 255,
+            green: Double(green) / 255,
+            blue: Double(blue) / 255,
+            opacity: Double(alpha) / 255
         )
     }
 }
 
 #Preview {
+
     StyleTriggerMainView()
+
 }

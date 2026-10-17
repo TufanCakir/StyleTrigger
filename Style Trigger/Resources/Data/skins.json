@@ -1,0 +1,422 @@
+[
+    {
+        "id": "vex-default",
+        "characterID": "vex",
+        "name": "DEFAULT",
+        "unlockedByDefault": true,
+        "appearance": {
+            "primaryColor": "#00F6FF",
+            "secondaryColor": "#24344D",
+            "visorColor": "#00F6FF",
+            "bodyStyle": "slim",
+            "helmetStyle": "angular",
+            "armorStyle": "light",
+            "weaponStyle": "energyBlade",
+            "weaponColor": "#00F6FF",
+            "glowIntensity": 0.85,
+            "outlineWidth": 2,
+            "bodyScale": 1,
+            "weaponScale": 1
+        },
+        "particleStyle": "neonSparks"
+    },
+    {
+        "id": "vex-shadow",
+        "characterID": "vex",
+        "name": "SHADOW",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#242430",
+            "secondaryColor": "#050508",
+            "visorColor": "#00F6FF",
+            "bodyStyle": "slim",
+            "helmetStyle": "angular",
+            "armorStyle": "shadow",
+            "weaponStyle": "energyBlade",
+            "weaponColor": "#00F6FF",
+            "glowIntensity": 0.95,
+            "outlineWidth": 2,
+            "bodyScale": 1,
+            "weaponScale": 1
+        },
+        "particleStyle": "shadowMist"
+    },
+    {
+        "id": "nyx-default",
+        "characterID": "nyx",
+        "name": "DEFAULT",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#FF007F",
+            "secondaryColor": "#501A62",
+            "visorColor": "#FF5CAD",
+            "bodyStyle": "agile",
+            "helmetStyle": "pointed",
+            "armorStyle": "shadow",
+            "weaponStyle": "dualBlades",
+            "weaponColor": "#FF007F",
+            "glowIntensity": 0.9,
+            "outlineWidth": 2,
+            "bodyScale": 0.96,
+            "weaponScale": 0.9
+        },
+        "particleStyle": "neonSparks"
+    },
+    {
+        "id": "nyx-shadow",
+        "characterID": "nyx",
+        "name": "SHADOW",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#242430",
+            "secondaryColor": "#050508",
+            "visorColor": "#FF007F",
+            "bodyStyle": "agile",
+            "helmetStyle": "pointed",
+            "armorStyle": "shadow",
+            "weaponStyle": "dualBlades",
+            "weaponColor": "#FF007F",
+            "glowIntensity": 1,
+            "outlineWidth": 2,
+            "bodyScale": 0.96,
+            "weaponScale": 0.9
+        },
+        "particleStyle": "shadowMist"
+    },
+    {
+        "id": "kairon-default",
+        "characterID": "kairon",
+        "name": "DEFAULT",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#FF334E",
+            "secondaryColor": "#56131B",
+            "visorColor": "#FF8A00",
+            "bodyStyle": "armored",
+            "helmetStyle": "horned",
+            "armorStyle": "plated",
+            "weaponStyle": "greatsword",
+            "weaponColor": "#FF334E",
+            "glowIntensity": 0.8,
+            "outlineWidth": 3,
+            "bodyScale": 1.12,
+            "weaponScale": 1.18
+        },
+        "particleStyle": "neonSparks"
+    },
+    {
+        "id": "kairon-shadow",
+        "characterID": "kairon",
+        "name": "SHADOW",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#242430",
+            "secondaryColor": "#050508",
+            "visorColor": "#FF334E",
+            "bodyStyle": "armored",
+            "helmetStyle": "horned",
+            "armorStyle": "shadow",
+            "weaponStyle": "greatsword",
+            "weaponColor": "#FF334E",
+            "glowIntensity": 0.9,
+            "outlineWidth": 3,
+            "bodyScale": 1.12,
+            "weaponScale": 1.18
+        },
+        "particleStyle": "shadowMist"
+    },
+    {
+        "id": "zyra-default",
+        "characterID": "zyra",
+        "name": "DEFAULT",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#A855F7",
+            "secondaryColor": "#3B1766",
+            "visorColor": "#E879F9",
+            "bodyStyle": "slim",
+            "helmetStyle": "masked",
+            "armorStyle": "light",
+            "weaponStyle": "dualBlades",
+            "weaponColor": "#C084FC",
+            "glowIntensity": 0.95,
+            "outlineWidth": 1.8,
+            "bodyScale": 0.94,
+            "weaponScale": 0.85
+        },
+        "particleStyle": "neonSparks"
+    },
+    {
+        "id": "zyra-shadow",
+        "characterID": "zyra",
+        "name": "SHADOW",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#242430",
+            "secondaryColor": "#050508",
+            "visorColor": "#A855F7",
+            "bodyStyle": "slim",
+            "helmetStyle": "masked",
+            "armorStyle": "shadow",
+            "weaponStyle": "dualBlades",
+            "weaponColor": "#A855F7",
+            "glowIntensity": 1,
+            "outlineWidth": 1.8,
+            "bodyScale": 0.94,
+            "weaponScale": 0.85
+        },
+        "particleStyle": "shadowMist"
+    },
+    {
+        "id": "draev-default",
+        "characterID": "draev",
+        "name": "DEFAULT",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#FF8A00",
+            "secondaryColor": "#5C2B08",
+            "visorColor": "#FFD166",
+            "bodyStyle": "heavy",
+            "helmetStyle": "rounded",
+            "armorStyle": "plated",
+            "weaponStyle": "gauntlets",
+            "weaponColor": "#FF8A00",
+            "glowIntensity": 0.75,
+            "outlineWidth": 3,
+            "bodyScale": 1.15,
+            "weaponScale": 1.12
+        },
+        "particleStyle": "neonSparks"
+    },
+    {
+        "id": "draev-shadow",
+        "characterID": "draev",
+        "name": "SHADOW",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#242430",
+            "secondaryColor": "#050508",
+            "visorColor": "#FF8A00",
+            "bodyStyle": "heavy",
+            "helmetStyle": "rounded",
+            "armorStyle": "shadow",
+            "weaponStyle": "gauntlets",
+            "weaponColor": "#FF8A00",
+            "glowIntensity": 0.85,
+            "outlineWidth": 3,
+            "bodyScale": 1.15,
+            "weaponScale": 1.12
+        },
+        "particleStyle": "shadowMist"
+    },
+    {
+        "id": "riven-default",
+        "characterID": "riven",
+        "name": "DEFAULT",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#7DD3FC",
+            "secondaryColor": "#164E63",
+            "visorColor": "#E0F2FE",
+            "bodyStyle": "agile",
+            "helmetStyle": "visor",
+            "armorStyle": "tactical",
+            "weaponStyle": "nunchaku",
+            "weaponColor": "#7DD3FC",
+            "glowIntensity": 0.88,
+            "outlineWidth": 1.7,
+            "bodyScale": 0.92,
+            "weaponScale": 0.86
+        },
+        "particleStyle": "neonSparks"
+    },
+    {
+        "id": "riven-shadow",
+        "characterID": "riven",
+        "name": "SHADOW",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#242430",
+            "secondaryColor": "#050508",
+            "visorColor": "#7DD3FC",
+            "bodyStyle": "agile",
+            "helmetStyle": "visor",
+            "armorStyle": "shadow",
+            "weaponStyle": "nunchaku",
+            "weaponColor": "#7DD3FC",
+            "glowIntensity": 0.98,
+            "outlineWidth": 1.7,
+            "bodyScale": 0.92,
+            "weaponScale": 0.86
+        },
+        "particleStyle": "shadowMist"
+    },
+    {
+        "id": "xeron-default",
+        "characterID": "xeron",
+        "name": "DEFAULT",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#39FF88",
+            "secondaryColor": "#123D27",
+            "visorColor": "#B6FFCE",
+            "bodyStyle": "athletic",
+            "helmetStyle": "visor",
+            "armorStyle": "tactical",
+            "weaponStyle": "crossbow",
+            "weaponColor": "#39FF88",
+            "glowIntensity": 0.7,
+            "outlineWidth": 2,
+            "bodyScale": 1,
+            "weaponScale": 0.95
+        },
+        "particleStyle": "neonSparks"
+    },
+    {
+        "id": "xeron-shadow",
+        "characterID": "xeron",
+        "name": "SHADOW",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#242430",
+            "secondaryColor": "#050508",
+            "visorColor": "#39FF88",
+            "bodyStyle": "athletic",
+            "helmetStyle": "visor",
+            "armorStyle": "shadow",
+            "weaponStyle": "crossbow",
+            "weaponColor": "#39FF88",
+            "glowIntensity": 0.7999999999999999,
+            "outlineWidth": 2,
+            "bodyScale": 1,
+            "weaponScale": 0.95
+        },
+        "particleStyle": "shadowMist"
+    },
+    {
+        "id": "vael-default",
+        "characterID": "vael",
+        "name": "DEFAULT",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#FFD166",
+            "secondaryColor": "#6B4B0B",
+            "visorColor": "#FFF4C2",
+            "bodyStyle": "slim",
+            "helmetStyle": "angular",
+            "armorStyle": "ceremonial",
+            "weaponStyle": "katana",
+            "weaponColor": "#FFD166",
+            "glowIntensity": 0.82,
+            "outlineWidth": 1.5,
+            "bodyScale": 1,
+            "weaponScale": 1.08
+        },
+        "particleStyle": "neonSparks"
+    },
+    {
+        "id": "vael-shadow",
+        "characterID": "vael",
+        "name": "SHADOW",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#242430",
+            "secondaryColor": "#050508",
+            "visorColor": "#FFD166",
+            "bodyStyle": "slim",
+            "helmetStyle": "angular",
+            "armorStyle": "shadow",
+            "weaponStyle": "katana",
+            "weaponColor": "#FFD166",
+            "glowIntensity": 0.9199999999999999,
+            "outlineWidth": 1.5,
+            "bodyScale": 1,
+            "weaponScale": 1.08
+        },
+        "particleStyle": "shadowMist"
+    },
+    {
+        "id": "noxar-default",
+        "characterID": "noxar",
+        "name": "DEFAULT",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#B91C3C",
+            "secondaryColor": "#24050B",
+            "visorColor": "#FF174F",
+            "bodyStyle": "heavy",
+            "helmetStyle": "horned",
+            "armorStyle": "shadow",
+            "weaponStyle": "scythe",
+            "weaponColor": "#E11D48",
+            "glowIntensity": 1,
+            "outlineWidth": 2.8,
+            "bodyScale": 1.08,
+            "weaponScale": 1.15
+        },
+        "particleStyle": "neonSparks"
+    },
+    {
+        "id": "noxar-shadow",
+        "characterID": "noxar",
+        "name": "SHADOW",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#242430",
+            "secondaryColor": "#050508",
+            "visorColor": "#B91C3C",
+            "bodyStyle": "heavy",
+            "helmetStyle": "horned",
+            "armorStyle": "shadow",
+            "weaponStyle": "scythe",
+            "weaponColor": "#B91C3C",
+            "glowIntensity": 1,
+            "outlineWidth": 2.8,
+            "bodyScale": 1.08,
+            "weaponScale": 1.15
+        },
+        "particleStyle": "shadowMist"
+    },
+    {
+        "id": "astryx-default",
+        "characterID": "astryx",
+        "name": "DEFAULT",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#F5F5FA",
+            "secondaryColor": "#155E75",
+            "visorColor": "#00F6FF",
+            "bodyStyle": "athletic",
+            "helmetStyle": "pointed",
+            "armorStyle": "ceremonial",
+            "weaponStyle": "spear",
+            "weaponColor": "#00F6FF",
+            "glowIntensity": 1,
+            "outlineWidth": 2,
+            "bodyScale": 1.03,
+            "weaponScale": 1.2
+        },
+        "particleStyle": "neonSparks"
+    },
+    {
+        "id": "astryx-shadow",
+        "characterID": "astryx",
+        "name": "SHADOW",
+        "unlockedByDefault": false,
+        "appearance": {
+            "primaryColor": "#242430",
+            "secondaryColor": "#050508",
+            "visorColor": "#F5F5FA",
+            "bodyStyle": "athletic",
+            "helmetStyle": "pointed",
+            "armorStyle": "shadow",
+            "weaponStyle": "spear",
+            "weaponColor": "#F5F5FA",
+            "glowIntensity": 1,
+            "outlineWidth": 2,
+            "bodyScale": 1.03,
+            "weaponScale": 1.2
+        },
+        "particleStyle": "shadowMist"
+    }
+]

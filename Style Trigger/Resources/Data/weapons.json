@@ -1,22 +1,199 @@
 [
     {
+        "id": "standard-sword",
+        "name": "VECTOR SWORD",
+        "type": "sword",
+        "visualStyle": "single-edge",
+        "damage": 36,
+        "attackSpeed": 1,
+        "range": 74,
+        "associatedCombos": [
+            "razor-chain",
+            "cross-break"
+        ],
+        "animationType": "quickSlash",
+        "hitEffect": "cyanCut",
+        "particleEffect": "shortTrail",
+        "unlockedByDefault": true
+    },
+    {
+        "id": "titan-core",
+        "name": "TITAN CORE",
+        "type": "greatsword",
+        "visualStyle": "wide-core",
+        "damage": 62,
+        "attackSpeed": 0.62,
+        "range": 92,
+        "associatedCombos": [
+            "titan-cleave",
+            "red-uprising",
+            "fault-line"
+        ],
+        "animationType": "heavySlash",
+        "hitEffect": "impactRing",
+        "particleEffect": "heavySparks",
+        "unlockedByDefault": false
+    },
+    {
+        "id": "twin-arc",
+        "name": "TWIN ARC",
+        "type": "dualBlades",
+        "visualStyle": "mirrored-blades",
+        "damage": 26,
+        "attackSpeed": 1.48,
+        "range": 60,
+        "associatedCombos": [
+            "violet-cross",
+            "orbit-dance",
+            "split-second"
+        ],
+        "animationType": "alternating",
+        "hitEffect": "crossCut",
+        "particleEffect": "dualTrails",
+        "unlockedByDefault": false
+    },
+    {
+        "id": "sun-katana",
+        "name": "SUN KATANA",
+        "type": "katana",
+        "visualStyle": "curved-gold",
+        "damage": 44,
+        "attackSpeed": 1.28,
+        "range": 82,
+        "associatedCombos": [
+            "golden-draw",
+            "moon-divider",
+            "still-wind"
+        ],
+        "animationType": "precision",
+        "hitEffect": "drawLine",
+        "particleEffect": "goldAfterimage",
+        "unlockedByDefault": false
+    },
+    {
+        "id": "vector-crossbow",
+        "name": "VECTOR BOW",
+        "type": "crossbow",
+        "visualStyle": "compact-limbs",
+        "damage": 39,
+        "attackSpeed": 0.92,
+        "range": 260,
+        "associatedCombos": [
+            "quick-bolt",
+            "rail-piercer",
+            "evasive-volley"
+        ],
+        "animationType": "projectile",
+        "hitEffect": "boltBurst",
+        "particleEffect": "projectileTrail",
+        "unlockedByDefault": false
+    },
+    {
+        "id": "frost-link",
+        "name": "FROST LINK",
+        "type": "nunchaku",
+        "visualStyle": "linked-rods",
+        "damage": 29,
+        "attackSpeed": 1.42,
+        "range": 72,
+        "associatedCombos": [
+            "frost-wheel",
+            "chain-current",
+            "zero-turn"
+        ],
+        "animationType": "spinning",
+        "hitEffect": "icePulse",
+        "particleEffect": "orbitTrail",
+        "unlockedByDefault": false
+    },
+    {
+        "id": "impact-gauntlets",
+        "name": "IMPACT KNUCKLES",
+        "type": "gauntlets",
+        "visualStyle": "armored-fists",
+        "damage": 34,
+        "attackSpeed": 1.35,
+        "range": 42,
+        "associatedCombos": [
+            "iron-jab",
+            "meteor-upper",
+            "breaker-rush"
+        ],
+        "animationType": "boxing",
+        "hitEffect": "fistBurst",
+        "particleEffect": "impactSparks",
+        "unlockedByDefault": false
+    },
+    {
+        "id": "eclipse-scythe",
+        "name": "ECLIPSE REAPER",
+        "type": "scythe",
+        "visualStyle": "crescent-pole",
+        "damage": 55,
+        "attackSpeed": 0.78,
+        "range": 112,
+        "associatedCombos": [
+            "grave-arc",
+            "night-harvest",
+            "red-eclipse"
+        ],
+        "animationType": "sweeping",
+        "hitEffect": "darkArc",
+        "particleEffect": "shadowTrail",
+        "unlockedByDefault": false
+    },
+    {
+        "id": "nova-spear",
+        "name": "NOVA LANCE",
+        "type": "spear",
+        "visualStyle": "energy-lance",
+        "damage": 46,
+        "attackSpeed": 1.1,
+        "range": 124,
+        "associatedCombos": [
+            "star-thrust",
+            "comet-rise",
+            "nova-line"
+        ],
+        "animationType": "thrusting",
+        "hitEffect": "pierceFlash",
+        "particleEffect": "starTrail",
+        "unlockedByDefault": false
+    },
+    {
         "id": "neon-edge",
         "name": "NEON EDGE",
+        "type": "energyBlade",
         "visualStyle": "blade(cyan:#00F6FF,core:#F5F5FA,width:12)",
+        "damage": 40,
+        "attackSpeed": 1.15,
+        "range": 80,
         "associatedCombos": [
             "razor-chain",
             "sky-trigger",
             "cross-break"
-        ]
+        ],
+        "animationType": "energy",
+        "hitEffect": "neonSlice",
+        "particleEffect": "energyTrail",
+        "unlockedByDefault": true
     },
     {
         "id": "void-fang",
         "name": "VOID FANG",
+        "type": "energyBlade",
         "visualStyle": "blade(magenta:#FF007F,core:#F5F5FA,width:18)",
+        "damage": 41,
+        "attackSpeed": 1.12,
+        "range": 78,
         "associatedCombos": [
             "razor-chain",
             "void-step",
             "gravity-rend"
-        ]
+        ],
+        "animationType": "energy",
+        "hitEffect": "voidSlice",
+        "particleEffect": "voidTrail",
+        "unlockedByDefault": false
     }
 ]

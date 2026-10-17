@@ -10,31 +10,31 @@ import Foundation
 enum GameDataError: LocalizedError {
     case missingResource(String)
     case invalidResource(String, Error)
+    case invalidReferences([String])
 
     var errorDescription: String? {
         switch self {
         case .missingResource(let name):
-            "Missing game data resource: \(name).json"
+            return "Missing game data resource: \(name).json"
         case .invalidResource(let name, let error):
-            "Could not decode \(name).json: \(error.localizedDescription)"
+            return "Could not load \(name).json: \(error.localizedDescription)"
+        case .invalidReferences(let messages):
+            return "Invalid game data: \(messages.joined(separator: "; "))"
         }
     }
 }
 
 struct GameDataRepository {
     private let bundle: Bundle
-    private let decoder: JSONDecoder
 
     init(bundle: Bundle = .main) {
         self.bundle = bundle
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        self.decoder = decoder
     }
 
     func load() throws -> GameContent {
-        GameContent(
+        let content = GameContent(
             characters: try decode("characters", as: [GameCharacter].self),
+            skins: try decode("skins", as: [CharacterSkin].self),
             weapons: try decode("weapons", as: [Weapon].self),
             combos: try decode("combos", as: [ComboDefinition].self),
             progression: try decode(
@@ -44,6 +44,8 @@ struct GameDataRepository {
             enemies: try decode("enemies", as: [EnemyDefinition].self),
             events: try decode("events", as: [TimedEventDefinition].self)
         )
+        try validate(content)
+        return content
     }
 
     private func decode<Value: Decodable>(_ name: String, as type: Value.Type)
@@ -53,21 +55,182 @@ struct GameDataRepository {
         else {
             throw GameDataError.missingResource(name)
         }
-
         do {
-            return try decoder.decode(Value.self, from: Data(contentsOf: url))
+            let data = try Data(contentsOf: url)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            return try decoder.decode(type, from: data)
         } catch {
             throw GameDataError.invalidResource(name, error)
+        }
+    }
+
+    private func validate(_ content: GameContent) throws {
+        var errors: [String] = []
+        checkUnique(
+            content.characters.map(\.id),
+            category: "character",
+            errors: &errors
+        )
+        checkUnique(content.skins.map(\.id), category: "skin", errors: &errors)
+        checkUnique(
+            content.weapons.map(\.id),
+            category: "weapon",
+            errors: &errors
+        )
+        checkUnique(
+            content.combos.map(\.id),
+            category: "combo",
+            errors: &errors
+        )
+        checkUnique(
+            content.enemies.map(\.id),
+            category: "enemy",
+            errors: &errors
+        )
+        checkUnique(
+            content.events.map(\.id),
+            category: "event",
+            errors: &errors
+        )
+        checkUnique(
+            content.progression.modes.map(\.id.rawValue),
+            category: "mode",
+            errors: &errors
+        )
+
+        let characterIDs = Set(content.characters.map(\.id))
+        let skinIDs = Set(content.skins.map(\.id))
+        let weaponIDs = Set(content.weapons.map(\.id))
+        let comboIDs = Set(content.combos.map(\.id))
+
+        for character in content.characters {
+            checkReferences(
+                character.unlockedSkins,
+                valid: skinIDs,
+                owner: character.id,
+                kind: "skin",
+                errors: &errors
+            )
+            checkReferences(
+                character.compatibleWeaponIDs,
+                valid: weaponIDs,
+                owner: character.id,
+                kind: "weapon",
+                errors: &errors
+            )
+            checkReferences(
+                character.defaultWeaponIDs,
+                valid: weaponIDs,
+                owner: character.id,
+                kind: "default weapon",
+                errors: &errors
+            )
+            checkReferences(
+                character.baseComboList,
+                valid: comboIDs,
+                owner: character.id,
+                kind: "combo",
+                errors: &errors
+            )
+
+            let compatible = Set(character.compatibleWeaponIDs)
+            for id in character.defaultWeaponIDs where !compatible.contains(id)
+            {
+                errors.append(
+                    "\(character.id) has incompatible default weapon \(id)"
+                )
+            }
+            for id in character.unlockedSkins {
+                if let skin = content.skins.first(where: { $0.id == id }),
+                    skin.characterID != character.id
+                {
+                    errors.append(
+                        "\(character.id) references skin \(id) belonging to \(skin.characterID)"
+                    )
+                }
+            }
+        }
+
+        for skin in content.skins where !characterIDs.contains(skin.characterID)
+        {
+            errors.append(
+                "\(skin.id) references missing character \(skin.characterID)"
+            )
+        }
+        for weapon in content.weapons {
+            checkReferences(
+                weapon.associatedCombos,
+                valid: comboIDs,
+                owner: weapon.id,
+                kind: "combo",
+                errors: &errors
+            )
+        }
+        for event in content.events {
+            checkReferences(
+                event.rewardSkinIDs,
+                valid: skinIDs,
+                owner: event.id,
+                kind: "reward skin",
+                errors: &errors
+            )
+        }
+
+        if content.characters.isEmpty {
+            errors.append("no characters configured")
+        }
+        if content.weapons.isEmpty { errors.append("no weapons configured") }
+        if content.enemies.isEmpty { errors.append("no enemies configured") }
+        if content.progression.modes.isEmpty {
+            errors.append("no game modes configured")
+        }
+
+        guard errors.isEmpty else {
+            throw GameDataError.invalidReferences(errors.sorted())
+        }
+    }
+
+    private func checkUnique(
+        _ ids: [String],
+        category: String,
+        errors: inout [String]
+    ) {
+        var seen = Set<String>()
+        var duplicates = Set<String>()
+        for id in ids {
+            if id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                errors.append("empty \(category) id")
+            } else if !seen.insert(id).inserted {
+                duplicates.insert(id)
+            }
+        }
+        for id in duplicates.sorted() {
+            errors.append("duplicate \(category) id \(id)")
+        }
+    }
+
+    private func checkReferences(
+        _ ids: [String],
+        valid: Set<String>,
+        owner: String,
+        kind: String,
+        errors: inout [String]
+    ) {
+        for id in Set(ids).sorted() where !valid.contains(id) {
+            errors.append("\(owner) references missing \(kind) \(id)")
         }
     }
 }
 
 actor ProgressionStore {
     private let fileURL: URL
+    private let fileManager: FileManager
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
     init(fileManager: FileManager = .default) {
+        self.fileManager = fileManager
         let directory = fileManager.urls(
             for: .documentDirectory,
             in: .userDomainMask
@@ -78,17 +241,36 @@ actor ProgressionStore {
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     }
 
+    // Keep the existing non-throwing API for StyleTriggerViewModel.
+    // Corrupt saves are retained for diagnosis rather than overwritten here.
     func load() -> PlayerProgress {
-        guard let data = try? Data(contentsOf: fileURL),
-            let progress = try? decoder.decode(PlayerProgress.self, from: data)
-        else {
+        guard fileManager.fileExists(atPath: fileURL.path) else {
             return .initial
         }
-        return progress
+        do {
+            return try decoder.decode(
+                PlayerProgress.self,
+                from: Data(contentsOf: fileURL)
+            )
+        } catch {
+            NSLog(
+                "Style Trigger: Could not load saved progress: %@",
+                String(describing: error)
+            )
+            return .initial
+        }
     }
 
     func save(_ progress: PlayerProgress) throws {
+        let directory = fileURL.deletingLastPathComponent()
+        try fileManager.createDirectory(
+            at: directory,
+            withIntermediateDirectories: true
+        )
         let data = try encoder.encode(progress)
-        try data.write(to: fileURL, options: .atomic)
+        try data.write(
+            to: fileURL,
+            options: [.atomic, .completeFileProtectionUnlessOpen]
+        )
     }
 }
