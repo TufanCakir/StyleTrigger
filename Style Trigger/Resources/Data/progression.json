@@ -1,0 +1,45 @@
+{
+    "storyChapterCount": 8,
+    "expPerLevel": 1000,
+    "modes": [
+        {
+            "id": "story",
+            "description":
+                "Eight skill-focused battles with fixed encounter rules.",
+            "unlockedByDefault": true,
+            "unlockAfterStoryChapter": null,
+            "matchDuration": 120
+        },
+        {
+            "id": "arcade",
+            "description": "Immediate combat with selectable difficulty.",
+            "unlockedByDefault": true,
+            "unlockAfterStoryChapter": null,
+            "matchDuration": 90
+        },
+        {
+            "id": "survival",
+            "description":
+                "Endless waves with rising speed, aggression, and numbers.",
+            "unlockedByDefault": false,
+            "unlockAfterStoryChapter": 2,
+            "matchDuration": 180
+        },
+        {
+            "id": "versus",
+            "description":
+                "Real-time Game Center combat from one-versus-one to four-versus-four.",
+            "unlockedByDefault": true,
+            "unlockAfterStoryChapter": null,
+            "matchDuration": 120
+        },
+        {
+            "id": "timedEvent",
+            "description":
+                "Time-locked challenge with exclusive cosmetic rewards.",
+            "unlockedByDefault": false,
+            "unlockAfterStoryChapter": 3,
+            "matchDuration": 100
+        }
+    ]
+}

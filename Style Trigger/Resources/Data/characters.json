@@ -1,0 +1,29 @@
+[
+    {
+        "id": "vex",
+        "name": "VEX",
+        "description": "A precision hunter who cancels attacks into movement.",
+        "unlocked": true,
+        "baseComboList": [
+            "razor-chain",
+            "sky-trigger",
+            "cross-break"
+        ],
+        "unlockedSkins": [
+            "vex-default"
+        ]
+    },
+    {
+        "id": "nyx",
+        "name": "NYX",
+        "description": "A momentum fighter built around aerial redirection.",
+        "unlocked": false,
+        "baseComboList": [
+            "razor-chain",
+            "void-step"
+        ],
+        "unlockedSkins": [
+            "nyx-default"
+        ]
+    }
+]

@@ -1,0 +1,13 @@
+[
+    {
+        "id": "neon-eclipse",
+        "name": "NEON ECLIPSE",
+        "description": "Chain diagonal attacks to earn Eclipse Shards.",
+        "endsAt": "2027-12-31T23:59:59Z",
+        "currencyName": "ECLIPSE SHARDS",
+        "rewardSkinIDs": [
+            "vex-eclipse",
+            "nyx-eclipse"
+        ]
+    }
+]

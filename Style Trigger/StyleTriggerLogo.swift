@@ -1,3 +1,10 @@
+//
+//  StyleTriggerLogo.swift
+//  Style Trigger
+//
+//  Created by Tufan Cakir on 17.10.26.
+//
+
 import SwiftUI
 
 struct StyleTriggerLogo: View {
@@ -12,7 +19,7 @@ struct StyleTriggerLogo: View {
                             colors: [
                                 .white,
                                 StyleTriggerPalette.steel,
-                                StyleTriggerPalette.darkSteel
+                                StyleTriggerPalette.darkSteel,
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -20,7 +27,13 @@ struct StyleTriggerLogo: View {
                     )
                     .overlay {
                         Text("S")
-                            .font(.system(size: 142, weight: .black, design: .rounded))
+                            .font(
+                                .system(
+                                    size: 142,
+                                    weight: .black,
+                                    design: .rounded
+                                )
+                            )
                             .italic()
                             .foregroundStyle(.clear)
                             .stroke(
@@ -28,7 +41,10 @@ struct StyleTriggerLogo: View {
                                 lineWidth: 0.7
                             )
                     }
-                    .shadow(color: StyleTriggerPalette.silver.opacity(0.28), radius: 8)
+                    .shadow(
+                        color: StyleTriggerPalette.silver.opacity(0.28),
+                        radius: 8
+                    )
 
                 LogoSlash()
             }
@@ -38,7 +54,10 @@ struct StyleTriggerLogo: View {
                 .font(.system(size: 52, weight: .black, design: .monospaced))
                 .italic()
                 .foregroundStyle(StyleTriggerPalette.silver)
-                .shadow(color: StyleTriggerPalette.silver.opacity(0.35), radius: 9)
+                .shadow(
+                    color: StyleTriggerPalette.silver.opacity(0.35),
+                    radius: 9
+                )
 
             HStack(spacing: 0) {
                 Text("TRIGGER")
@@ -74,7 +93,7 @@ private struct LogoSlash: View {
                             StyleTriggerPalette.cyan,
                             .white,
                             StyleTriggerPalette.magenta,
-                            .clear
+                            .clear,
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
@@ -89,8 +108,8 @@ private struct LogoSlash: View {
     }
 }
 
-private extension View {
-    func stroke(_ color: Color, lineWidth: CGFloat) -> some View {
+extension View {
+    fileprivate func stroke(_ color: Color, lineWidth: CGFloat) -> some View {
         overlay(self.mask(self).foregroundStyle(color))
             .padding(lineWidth)
     }

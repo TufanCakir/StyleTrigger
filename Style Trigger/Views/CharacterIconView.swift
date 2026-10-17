@@ -17,7 +17,7 @@ struct CharacterIconView: View {
                 .frame(width: 120, height: 120)
                 .overlay(Circle().stroke(Color.red, lineWidth: 3))
                 .shadow(color: .red.opacity(0.5), radius: 10)
-            
+
             // Der gezeichnete Helm
             Path { path in
                 // Start am Kinn
@@ -34,8 +34,14 @@ struct CharacterIconView: View {
                 // Zurück zum Kinn
                 path.closeSubpath()
             }
-            .fill(LinearGradient(colors: [.black, .gray], startPoint: .top, endPoint: .bottom))
-            
+            .fill(
+                LinearGradient(
+                    colors: [.black, .gray],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+
             // Das glühende Cyber-Visier
             Path { path in
                 path.move(to: CGPoint(x: 40, y: 45))
@@ -49,10 +55,10 @@ struct CharacterIconView: View {
         }
         .frame(width: 120, height: 120)
     }
-    
+
     func createAdvancedPlayer() -> SKNode {
         let playerNode = SKNode()
-        
+
         // Kantiger Körper (Silhouette)
         let bodyPath = CGMutablePath()
         bodyPath.move(to: CGPoint(x: -15, y: -30))
@@ -61,13 +67,13 @@ struct CharacterIconView: View {
         bodyPath.addLine(to: CGPoint(x: 0, y: 35))
         bodyPath.addLine(to: CGPoint(x: -20, y: 20))
         bodyPath.closeSubpath()
-        
+
         let body = SKShapeNode(path: bodyPath)
         body.fillColor = .black
         body.strokeColor = .systemRed
         body.lineWidth = 3
         playerNode.addChild(body)
-        
+
         // Leuchtendes Visier
         let visorPath = CGMutablePath()
         visorPath.move(to: CGPoint(x: -5, y: 20))
@@ -77,31 +83,31 @@ struct CharacterIconView: View {
         visor.lineWidth = 4
         visor.glowWidth = 4
         playerNode.addChild(visor)
-        
+
         // Das Breitschwert (als eigenes Node)
         let swordPath = CGMutablePath()
         // Klinge zeichnen (zeigt nach oben)
-        swordPath.move(to: CGPoint(x: 0, y: 0))      // Griffbasis
+        swordPath.move(to: CGPoint(x: 0, y: 0))  // Griffbasis
         swordPath.addLine(to: CGPoint(x: -5, y: 15))  // Parierstange
         swordPath.addLine(to: CGPoint(x: -5, y: 70))  // Klinge links
-        swordPath.addLine(to: CGPoint(x: 0, y: 85))   // Schwertspitze
-        swordPath.addLine(to: CGPoint(x: 5, y: 70))   // Klinge rechts
-        swordPath.addLine(to: CGPoint(x: 5, y: 15))   // Parierstange rechts
+        swordPath.addLine(to: CGPoint(x: 0, y: 85))  // Schwertspitze
+        swordPath.addLine(to: CGPoint(x: 5, y: 70))  // Klinge rechts
+        swordPath.addLine(to: CGPoint(x: 5, y: 15))  // Parierstange rechts
         swordPath.closeSubpath()
-        
+
         let sword = SKShapeNode(path: swordPath)
-        sword.name = "sword" // WICHTIG: Name für die Suche im Code
+        sword.name = "sword"  // WICHTIG: Name für die Suche im Code
         sword.fillColor = .lightGray
         sword.strokeColor = .white
         sword.lineWidth = 2
-        
+
         // Positioniere das Schwert im Zentrum des Spielers
         sword.position = CGPoint(x: 0, y: 0)
         // Standard-Ruheposition: Leicht schräg auf dem Rücken
         sword.zRotation = CGFloat.pi / 4
-        
+
         playerNode.addChild(sword)
-        
+
         return playerNode
     }
 }

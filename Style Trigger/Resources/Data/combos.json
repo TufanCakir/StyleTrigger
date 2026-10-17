@@ -1,0 +1,63 @@
+[
+    {
+        "id": "razor-chain",
+        "name": "RAZOR CHAIN",
+        "inputSequence": [
+            "tap",
+            "tap",
+            "tap"
+        ],
+        "damage": 42,
+        "stylePoints": 110,
+        "isAirLauncher": false
+    },
+    {
+        "id": "sky-trigger",
+        "name": "SKY TRIGGER",
+        "inputSequence": [
+            "tap",
+            "swipeUp",
+            "tap",
+            "diagonalUpRight"
+        ],
+        "damage": 58,
+        "stylePoints": 180,
+        "isAirLauncher": true
+    },
+    {
+        "id": "cross-break",
+        "name": "CROSS BREAK",
+        "inputSequence": [
+            "diagonalDownLeft",
+            "diagonalUpRight",
+            "tap"
+        ],
+        "damage": 64,
+        "stylePoints": 220,
+        "isAirLauncher": false
+    },
+    {
+        "id": "void-step",
+        "name": "VOID STEP",
+        "inputSequence": [
+            "swipeRight",
+            "swipeLeft",
+            "tap"
+        ],
+        "damage": 38,
+        "stylePoints": 200,
+        "isAirLauncher": false
+    },
+    {
+        "id": "gravity-rend",
+        "name": "GRAVITY REND",
+        "inputSequence": [
+            "swipeUp",
+            "tap",
+            "swipeDown"
+        ],
+        "damage": 72,
+        "stylePoints": 250,
+        "isAirLauncher": true
+    }
+]

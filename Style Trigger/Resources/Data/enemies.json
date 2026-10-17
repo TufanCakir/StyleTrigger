@@ -1,0 +1,18 @@
+[
+    {
+        "id": "wraith",
+        "name": "NEON WRAITH",
+        "visualStyle": "demon(magenta:#FF007F,horns:2)",
+        "baseHealth": 180,
+        "baseVelocity": 1.0,
+        "aggression": 0.55
+    },
+    {
+        "id": "breaker",
+        "name": "CHROME BREAKER",
+        "visualStyle": "armor(silver:#D1D5DB,core:#00F6FF)",
+        "baseHealth": 260,
+        "baseVelocity": 0.72,
+        "aggression": 0.7
+    }
+]

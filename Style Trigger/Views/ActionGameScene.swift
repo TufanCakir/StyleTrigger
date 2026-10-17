@@ -1,7 +1,16 @@
+//
+//  ActionGameScene.swift
+//  Style Trigger
+//
+//  Created by Tufan Cakir on 17.10.26.
+//
+
 import SpriteKit
 
 final class ActionGameScene: SKScene {
     var onGameOver: ((Int) -> Void)?
+    var onCombatSnapshot: ((CombatSnapshot) -> Void)?
+    var onLocalInput: ((CombatInput) -> Void)?
 
     private enum PlayerState {
         case idle
@@ -36,12 +45,23 @@ final class ActionGameScene: SKScene {
     private let effectsNode = SKNode()
     private let player = SKNode()
     private var enemy = SKNode()
+    private let comboDetector = ComboDetector()
 
-    private let scoreLabel = SKLabelNode(fontNamed: "AvenirNextCondensed-HeavyItalic")
+    private let scoreLabel = SKLabelNode(
+        fontNamed: "AvenirNextCondensed-HeavyItalic"
+    )
     private let comboLabel = SKLabelNode(fontNamed: "AvenirNextCondensed-Bold")
-    private let styleLabel = SKLabelNode(fontNamed: "AvenirNextCondensed-HeavyItalic")
-    private let healthBar = SKShapeNode(rectOf: CGSize(width: 112, height: 8), cornerRadius: 4)
-    private let enemyHealthBar = SKShapeNode(rectOf: CGSize(width: 116, height: 7), cornerRadius: 3.5)
+    private let styleLabel = SKLabelNode(
+        fontNamed: "AvenirNextCondensed-HeavyItalic"
+    )
+    private let healthBar = SKShapeNode(
+        rectOf: CGSize(width: 112, height: 8),
+        cornerRadius: 4
+    )
+    private let enemyHealthBar = SKShapeNode(
+        rectOf: CGSize(width: 116, height: 7),
+        cornerRadius: 3.5
+    )
 
     private var playerState: PlayerState = .idle
     private var touchStart = CGPoint.zero
@@ -51,6 +71,8 @@ final class ActionGameScene: SKScene {
     private var enemyAttackTime: TimeInterval = 0
     private var combo = 0
     private var score = 0
+    private var totalDamage = 0
+    private var highestStyleRank: StyleRank = .d
     private var wave = 1
     private var playerHealth: CGFloat = 100
     private var enemyHealth: CGFloat = 100
@@ -65,11 +87,36 @@ final class ActionGameScene: SKScene {
         super.init(size: size)
         scaleMode = .aspectFill
         anchorPoint = .zero
-        backgroundColor = SKColor(red: 0.018, green: 0.022, blue: 0.055, alpha: 1)
+        backgroundColor = SKColor(
+            red: 0.018,
+            green: 0.022,
+            blue: 0.055,
+            alpha: 1
+        )
     }
 
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
+    }
+
+    func configure(combos: [ComboDefinition]) {
+        comboDetector.configure(with: combos)
+    }
+
+    func receiveRemoteInput(_ input: CombatInput) {
+        guard !isGameOver else { return }
+        switch input {
+        case .swipeLeft, .swipeRight, .diagonalUpLeft:
+            showCallout("RIVAL EVADE", color: .systemPink)
+        case .swipeUp, .diagonalUpRight:
+            showCallout("RIVAL LAUNCH", color: .systemPink)
+            takeDamage()
+        case .swipeDown, .diagonalDownLeft, .diagonalDownRight:
+            showCallout("RIVAL BREAK", color: .systemOrange)
+            takeDamage()
+        case .tap:
+            takeDamage()
+        }
     }
 
     override func didMove(to view: SKView) {
@@ -111,12 +158,19 @@ final class ActionGameScene: SKScene {
         for index in 0..<9 {
             let buildingWidth = CGFloat(34 + (index % 3) * 14)
             let buildingHeight = CGFloat(80 + (index * 37) % 150)
-            let building = SKShapeNode(rectOf: CGSize(width: buildingWidth, height: buildingHeight))
+            let building = SKShapeNode(
+                rectOf: CGSize(width: buildingWidth, height: buildingHeight)
+            )
             building.position = CGPoint(
                 x: CGFloat(index) * size.width / 8,
                 y: floorY + buildingHeight / 2
             )
-            building.fillColor = SKColor(red: 0.025, green: 0.035, blue: 0.075, alpha: 1)
+            building.fillColor = SKColor(
+                red: 0.025,
+                green: 0.035,
+                blue: 0.075,
+                alpha: 1
+            )
             building.strokeColor = .clear
             building.zPosition = -15
             worldNode.addChild(building)
@@ -221,7 +275,10 @@ final class ActionGameScene: SKScene {
         head.lineWidth = 2
         player.addChild(head)
 
-        let visor = SKShapeNode(rectOf: CGSize(width: 22, height: 4), cornerRadius: 2)
+        let visor = SKShapeNode(
+            rectOf: CGSize(width: 22, height: 4),
+            cornerRadius: 2
+        )
         visor.position = CGPoint(x: 5, y: 45)
         visor.fillColor = .cyan
         visor.strokeColor = .white
@@ -273,7 +330,10 @@ final class ActionGameScene: SKScene {
         hornRight.strokeColor = .systemPink
         enemy.addChild(hornRight)
 
-        let eye = SKShapeNode(rectOf: CGSize(width: 24, height: 4), cornerRadius: 2)
+        let eye = SKShapeNode(
+            rectOf: CGSize(width: 24, height: 4),
+            cornerRadius: 2
+        )
         eye.position = CGPoint(x: -3, y: 19)
         eye.fillColor = .systemPink
         eye.strokeColor = .white
@@ -290,10 +350,12 @@ final class ActionGameScene: SKScene {
         worldNode.addChild(enemy)
         enemy.setScale(0.1)
         enemy.alpha = 0
-        enemy.run(.group([
-            .scale(to: 1, duration: 0.25),
-            .fadeIn(withDuration: 0.2)
-        ]))
+        enemy.run(
+            .group([
+                .scale(to: 1, duration: 0.25),
+                .fadeIn(withDuration: 0.2),
+            ])
+        )
         showCallout("WAVE \(wave)", color: .systemPink)
     }
 
@@ -345,17 +407,53 @@ final class ActionGameScene: SKScene {
         let delta = CGVector(dx: end.x - touchStart.x, dy: end.y - touchStart.y)
         let distance = hypot(delta.dx, delta.dy)
 
+        let input: CombatInput
+        let isDiagonal =
+            distance >= 32
+            && abs(abs(delta.dx) - abs(delta.dy)) < distance * 0.42
+
         if distance < 32 {
+            input = .tap
             performAttack(.slash)
+        } else if isDiagonal, delta.dx > 0, delta.dy > 0 {
+            input = .diagonalUpRight
+            performAttack(.launcher)
+        } else if isDiagonal, delta.dx < 0, delta.dy > 0 {
+            input = .diagonalUpLeft
+            evade()
+        } else if isDiagonal, delta.dx > 0, delta.dy < 0 {
+            input = .diagonalDownRight
+            performAttack(.dive)
+        } else if isDiagonal {
+            input = .diagonalDownLeft
+            performAttack(.dive)
         } else if abs(delta.dy) > abs(delta.dx), delta.dy > 0 {
+            input = .swipeUp
             performAttack(.launcher)
         } else if abs(delta.dy) > abs(delta.dx), delta.dy < 0 {
+            input = .swipeDown
             performAttack(.dive)
         } else if delta.dx > 0 {
+            input = .swipeRight
             dash()
         } else {
+            input = .swipeLeft
             evade()
         }
+
+        if let matchedCombo = comboDetector.register(
+            input,
+            at: event?.timestamp ?? lastUpdateTime
+        ) {
+            combo += matchedCombo.inputSequence.count
+            score += matchedCombo.stylePoints
+            showCallout(
+                matchedCombo.name,
+                color: matchedCombo.isAirLauncher ? .systemPink : .cyan
+            )
+            updateHUD()
+        }
+        onLocalInput?(input)
     }
 
     private func performAttack(_ kind: AttackKind) {
@@ -365,28 +463,42 @@ final class ActionGameScene: SKScene {
         lastAttackTime = lastUpdateTime
 
         let nearEnemy = abs(player.position.x - enemy.position.x) < 205
-        let lunge: CGFloat = min(48, max(0, enemy.position.x - player.position.x - 72))
+        let lunge: CGFloat = min(
+            48,
+            max(0, enemy.position.x - player.position.x - 72)
+        )
         let start = player.position
-        let destination = CGPoint(x: start.x + lunge, y: kind == .launcher ? start.y + 34 : start.y)
+        let destination = CGPoint(
+            x: start.x + lunge,
+            y: kind == .launcher ? start.y + 34 : start.y
+        )
 
         player.removeAction(forKey: "attack")
-        player.run(.sequence([
-            .move(to: destination, duration: 0.055),
-            .wait(forDuration: 0.07),
-            .move(to: playerHome, duration: 0.13),
-            .run { [weak self] in self?.playerState = .idle }
-        ]), withKey: "attack")
+        player.run(
+            .sequence([
+                .move(to: destination, duration: 0.055),
+                .wait(forDuration: 0.07),
+                .move(to: playerHome, duration: 0.13),
+                .run { [weak self] in self?.playerState = .idle },
+            ]),
+            withKey: "attack"
+        )
 
         if let sword = player.childNode(withName: "sword") {
             sword.removeAllActions()
             let angle: CGFloat = kind == .launcher ? 1.9 : -2.8
-            sword.run(.sequence([
-                .rotate(byAngle: angle, duration: 0.08),
-                .rotate(toAngle: -.pi / 5, duration: 0.12)
-            ]))
+            sword.run(
+                .sequence([
+                    .rotate(byAngle: angle, duration: 0.08),
+                    .rotate(toAngle: -.pi / 5, duration: 0.12),
+                ])
+            )
         }
 
-        createSlash(kind: kind, at: CGPoint(x: player.position.x + 58, y: player.position.y + 10))
+        createSlash(
+            kind: kind,
+            at: CGPoint(x: player.position.x + 58, y: player.position.y + 10)
+        )
 
         guard nearEnemy else {
             combo = 0
@@ -395,19 +507,28 @@ final class ActionGameScene: SKScene {
         }
 
         let multiplier = 1 + min(CGFloat(combo) * 0.035, 0.5)
-        enemyHealth -= kind.damage * multiplier
+        let dealtDamage = Int(kind.damage * multiplier)
+        enemyHealth -= CGFloat(dealtDamage)
+        totalDamage += dealtDamage
         score += Int(kind.damage) * max(1, combo)
         flashEnemy(color: kind.color)
 
         switch kind {
         case .slash:
-            enemy.run(.sequence([.moveBy(x: 13, y: 0, duration: 0.05), .move(to: enemyHome, duration: 0.12)]))
+            enemy.run(
+                .sequence([
+                    .moveBy(x: 13, y: 0, duration: 0.05),
+                    .move(to: enemyHome, duration: 0.12),
+                ])
+            )
         case .launcher:
-            enemy.run(.sequence([
-                .moveBy(x: 12, y: 92, duration: 0.14),
-                .wait(forDuration: 0.08),
-                .move(to: enemyHome, duration: 0.22)
-            ]))
+            enemy.run(
+                .sequence([
+                    .moveBy(x: 12, y: 92, duration: 0.14),
+                    .wait(forDuration: 0.08),
+                    .move(to: enemyHome, duration: 0.22),
+                ])
+            )
             showCallout("LAUNCH!", color: .systemPink)
         case .dive:
             createImpact(at: enemy.position)
@@ -424,14 +545,19 @@ final class ActionGameScene: SKScene {
     private func dash() {
         guard playerState == .idle else { return }
         playerState = .dashing
-        let destination = CGPoint(x: min(enemy.position.x - 62, size.width - 70), y: playerHome.y)
+        let destination = CGPoint(
+            x: min(enemy.position.x - 62, size.width - 70),
+            y: playerHome.y
+        )
         createAfterimages()
-        player.run(.sequence([
-            .move(to: destination, duration: 0.1),
-            .wait(forDuration: 0.07),
-            .move(to: playerHome, duration: 0.18),
-            .run { [weak self] in self?.playerState = .idle }
-        ]))
+        player.run(
+            .sequence([
+                .move(to: destination, duration: 0.1),
+                .wait(forDuration: 0.07),
+                .move(to: playerHome, duration: 0.18),
+                .run { [weak self] in self?.playerState = .idle },
+            ])
+        )
         showCallout("TRIGGER DASH", color: .cyan)
     }
 
@@ -439,12 +565,14 @@ final class ActionGameScene: SKScene {
         guard playerState == .idle else { return }
         playerState = .dashing
         createAfterimages()
-        player.run(.sequence([
-            .moveBy(x: -46, y: 18, duration: 0.09),
-            .rotate(byAngle: .pi * 2, duration: 0.18),
-            .move(to: playerHome, duration: 0.12),
-            .run { [weak self] in self?.playerState = .idle }
-        ]))
+        player.run(
+            .sequence([
+                .moveBy(x: -46, y: 18, duration: 0.09),
+                .rotate(byAngle: .pi * 2, duration: 0.18),
+                .move(to: playerHome, duration: 0.12),
+                .run { [weak self] in self?.playerState = .idle },
+            ])
+        )
     }
 
     private func createSlash(kind: AttackKind, at position: CGPoint) {
@@ -452,13 +580,22 @@ final class ActionGameScene: SKScene {
         switch kind {
         case .slash:
             path.move(to: CGPoint(x: -42, y: 52))
-            path.addQuadCurve(to: CGPoint(x: 58, y: -42), control: CGPoint(x: 46, y: 34))
+            path.addQuadCurve(
+                to: CGPoint(x: 58, y: -42),
+                control: CGPoint(x: 46, y: 34)
+            )
         case .launcher:
             path.move(to: CGPoint(x: -38, y: -42))
-            path.addQuadCurve(to: CGPoint(x: 52, y: 58), control: CGPoint(x: 40, y: -20))
+            path.addQuadCurve(
+                to: CGPoint(x: 52, y: 58),
+                control: CGPoint(x: 40, y: -20)
+            )
         case .dive:
             path.move(to: CGPoint(x: -48, y: 18))
-            path.addQuadCurve(to: CGPoint(x: 66, y: -8), control: CGPoint(x: 8, y: 34))
+            path.addQuadCurve(
+                to: CGPoint(x: 66, y: -8),
+                control: CGPoint(x: 8, y: 34)
+            )
         }
 
         for layer in 0..<3 {
@@ -471,10 +608,15 @@ final class ActionGameScene: SKScene {
             slash.zPosition = 30
             slash.blendMode = .add
             effectsNode.addChild(slash)
-            slash.run(.sequence([
-                .group([.scale(to: 1.25, duration: 0.11), .fadeOut(withDuration: 0.18)]),
-                .removeFromParent()
-            ]))
+            slash.run(
+                .sequence([
+                    .group([
+                        .scale(to: 1.25, duration: 0.11),
+                        .fadeOut(withDuration: 0.18),
+                    ]),
+                    .removeFromParent(),
+                ])
+            )
         }
     }
 
@@ -492,17 +634,25 @@ final class ActionGameScene: SKScene {
             effectsNode.addChild(shard)
             let angle = CGFloat(index) / 10 * .pi
             let vector = CGVector(dx: cos(angle) * 95, dy: sin(angle) * 70)
-            shard.run(.sequence([
-                .group([.move(by: vector, duration: 0.24), .fadeOut(withDuration: 0.24)]),
-                .removeFromParent()
-            ]))
+            shard.run(
+                .sequence([
+                    .group([
+                        .move(by: vector, duration: 0.24),
+                        .fadeOut(withDuration: 0.24),
+                    ]),
+                    .removeFromParent(),
+                ])
+            )
         }
     }
 
     private func createAfterimages() {
         for index in 1...3 {
             let echo = SKShapeNode(path: helmetPath())
-            echo.position = CGPoint(x: player.position.x - CGFloat(index * 18), y: player.position.y + 44)
+            echo.position = CGPoint(
+                x: player.position.x - CGFloat(index * 18),
+                y: player.position.y + 44
+            )
             echo.strokeColor = .cyan
             echo.fillColor = .clear
             echo.lineWidth = 2
@@ -510,15 +660,19 @@ final class ActionGameScene: SKScene {
             echo.alpha = 0.55
             echo.zPosition = 6
             effectsNode.addChild(echo)
-            echo.run(.sequence([.fadeOut(withDuration: 0.2), .removeFromParent()]))
+            echo.run(
+                .sequence([.fadeOut(withDuration: 0.2), .removeFromParent()])
+            )
         }
     }
 
     private func flashEnemy(color: SKColor) {
-        enemy.run(.sequence([
-            .colorize(with: color, colorBlendFactor: 1, duration: 0.03),
-            .colorize(withColorBlendFactor: 0, duration: 0.08)
-        ]))
+        enemy.run(
+            .sequence([
+                .colorize(with: color, colorBlendFactor: 1, duration: 0.03),
+                .colorize(withColorBlendFactor: 0, duration: 0.08),
+            ])
+        )
     }
 
     private func defeatEnemy() {
@@ -526,28 +680,41 @@ final class ActionGameScene: SKScene {
         combo += 2
         shake(amount: 12)
         createImpact(at: enemy.position)
-        enemy.run(.sequence([
-            .group([.scale(to: 1.45, duration: 0.12), .fadeOut(withDuration: 0.2)]),
-            .removeFromParent(),
-            .wait(forDuration: 0.35),
-            .run { [weak self] in
-                guard let self else { return }
-                self.wave += 1
-                self.spawnEnemy()
-            }
-        ]))
+        enemy.run(
+            .sequence([
+                .group([
+                    .scale(to: 1.45, duration: 0.12),
+                    .fadeOut(withDuration: 0.2),
+                ]),
+                .removeFromParent(),
+                .wait(forDuration: 0.35),
+                .run { [weak self] in
+                    guard let self else { return }
+                    self.wave += 1
+                    self.spawnEnemy()
+                },
+            ])
+        )
     }
 
     private func enemyAttack() {
         guard playerState != .dashing, enemy.parent != nil else { return }
         enemyAttackTime = lastUpdateTime + max(0.65, 1.5 - Double(wave) * 0.06)
         let original = enemy.position
-        enemy.run(.sequence([
-            .moveBy(x: -22, y: 0, duration: 0.12),
-            .move(to: CGPoint(x: player.position.x + 52, y: player.position.y), duration: 0.16),
-            .run { [weak self] in self?.takeDamage() },
-            .move(to: original, duration: 0.22)
-        ]))
+        enemy.run(
+            .sequence([
+                .moveBy(x: -22, y: 0, duration: 0.12),
+                .move(
+                    to: CGPoint(
+                        x: player.position.x + 52,
+                        y: player.position.y
+                    ),
+                    duration: 0.16
+                ),
+                .run { [weak self] in self?.takeDamage() },
+                .move(to: original, duration: 0.22),
+            ])
+        )
     }
 
     private func takeDamage() {
@@ -559,10 +726,16 @@ final class ActionGameScene: SKScene {
         playerHealth -= CGFloat(10 + wave * 2)
         combo = 0
         shake(amount: 7)
-        player.run(.sequence([
-            .colorize(with: .systemRed, colorBlendFactor: 1, duration: 0.05),
-            .colorize(withColorBlendFactor: 0, duration: 0.12)
-        ]))
+        player.run(
+            .sequence([
+                .colorize(
+                    with: .systemRed,
+                    colorBlendFactor: 1,
+                    duration: 0.05
+                ),
+                .colorize(withColorBlendFactor: 0, duration: 0.12),
+            ])
+        )
         updateHUD()
         if playerHealth <= 0 {
             endGame()
@@ -573,8 +746,12 @@ final class ActionGameScene: SKScene {
         worldNode.removeAction(forKey: "shake")
         let actions = (0..<7).flatMap { _ in
             [
-                SKAction.moveBy(x: CGFloat.random(in: -amount...amount), y: CGFloat.random(in: -amount...amount), duration: 0.025),
-                SKAction.move(to: .zero, duration: 0.025)
+                SKAction.moveBy(
+                    x: CGFloat.random(in: -amount...amount),
+                    y: CGFloat.random(in: -amount...amount),
+                    duration: 0.025
+                ),
+                SKAction.move(to: .zero, duration: 0.025),
             ]
         }
         worldNode.run(.sequence(actions), withKey: "shake")
@@ -589,26 +766,40 @@ final class ActionGameScene: SKScene {
         label.zPosition = 80
         label.setScale(0.5)
         addChild(label)
-        label.run(.sequence([
-            .group([.scale(to: 1.15, duration: 0.1), .fadeIn(withDuration: 0.08)]),
-            .wait(forDuration: 0.3),
-            .group([.moveBy(x: 0, y: 30, duration: 0.18), .fadeOut(withDuration: 0.18)]),
-            .removeFromParent()
-        ]))
+        label.run(
+            .sequence([
+                .group([
+                    .scale(to: 1.15, duration: 0.1),
+                    .fadeIn(withDuration: 0.08),
+                ]),
+                .wait(forDuration: 0.3),
+                .group([
+                    .moveBy(x: 0, y: 30, duration: 0.18),
+                    .fadeOut(withDuration: 0.18),
+                ]),
+                .removeFromParent(),
+            ])
+        )
     }
 
     private func updateHUD() {
         scoreLabel.text = "SCORE  \(score)   WAVE  \(wave)"
         comboLabel.text = combo > 1 ? "\(combo) HIT COMBO" : "KEEP MOVING"
         let rank: String
+        let styleRank: StyleRank
         let color: SKColor
         switch combo {
-        case 0...2: (rank, color) = ("D", .white)
-        case 3...5: (rank, color) = ("C", .cyan)
-        case 6...8: (rank, color) = ("B", .systemBlue)
-        case 9...12: (rank, color) = ("A", .systemPurple)
-        case 13...17: (rank, color) = ("S", .systemPink)
-        default: (rank, color) = ("SSS", .systemOrange)
+        case 0...2: (rank, styleRank, color) = ("D", .d, .white)
+        case 3...5: (rank, styleRank, color) = ("C", .c, .cyan)
+        case 6...8: (rank, styleRank, color) = ("B", .b, .systemBlue)
+        case 9...12: (rank, styleRank, color) = ("A", .a, .systemPurple)
+        case 13...17: (rank, styleRank, color) = ("S", .s, .systemPink)
+        case 18...22: (rank, styleRank, color) = ("SS", .ss, .systemPink)
+        default: (rank, styleRank, color) = ("SSS", .sss, .systemOrange)
+        }
+        if styleRank > highestStyleRank {
+            highestStyleRank = styleRank
+            shake(amount: CGFloat(3 + styleRank.rawValue))
         }
         styleLabel.text = rank
         styleLabel.fontColor = color
@@ -621,13 +812,26 @@ final class ActionGameScene: SKScene {
 
         let maximumEnemyHealth = 80 + CGFloat(wave * 18)
         enemyHealthBar.xScale = max(0.001, enemyHealth / maximumEnemyHealth)
+        onCombatSnapshot?(
+            CombatSnapshot(
+                playerHealth: Double(max(0, playerHealth) / 100),
+                enemyHealth: Double(max(0, enemyHealth) / maximumEnemyHealth),
+                comboCount: combo,
+                score: score,
+                totalDamage: totalDamage,
+                styleRank: highestStyleRank
+            )
+        )
     }
 
     private func endGame() {
         isGameOver = true
         player.removeAllActions()
         enemy.removeAllActions()
-        let panel = SKShapeNode(rectOf: CGSize(width: 310, height: 180), cornerRadius: 24)
+        let panel = SKShapeNode(
+            rectOf: CGSize(width: 310, height: 180),
+            cornerRadius: 24
+        )
         panel.name = "gameOver"
         panel.position = CGPoint(x: size.width / 2, y: size.height / 2)
         panel.fillColor = SKColor.black.withAlphaComponent(0.88)
@@ -658,6 +862,8 @@ final class ActionGameScene: SKScene {
         isGameOver = false
         score = 0
         combo = 0
+        totalDamage = 0
+        highestStyleRank = .d
         wave = 1
         playerHealth = 100
         enemyHealth = 100

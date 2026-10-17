@@ -1,0 +1,22 @@
+[
+    {
+        "id": "neon-edge",
+        "name": "NEON EDGE",
+        "visualStyle": "blade(cyan:#00F6FF,core:#F5F5FA,width:12)",
+        "associatedCombos": [
+            "razor-chain",
+            "sky-trigger",
+            "cross-break"
+        ]
+    },
+    {
+        "id": "void-fang",
+        "name": "VOID FANG",
+        "visualStyle": "blade(magenta:#FF007F,core:#F5F5FA,width:18)",
+        "associatedCombos": [
+            "razor-chain",
+            "void-step",
+            "gravity-rend"
+        ]
+    }
+]
