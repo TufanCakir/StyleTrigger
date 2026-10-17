@@ -15,12 +15,38 @@ enum AppScreen: Equatable {
     case results
 }
 
+enum AppLanguage: String, CaseIterable, Identifiable {
+    case system
+    case english
+    case german
+
+    var id: String { rawValue }
+
+    var title: LocalizedStringResource {
+        switch self {
+        case .system: "SYSTEM"
+        case .english: "ENGLISH"
+        case .german: "GERMAN"
+        }
+    }
+
+    var locale: Locale {
+        switch self {
+        case .system: .autoupdatingCurrent
+        case .english: Locale(identifier: "en")
+        case .german: Locale(identifier: "de")
+        }
+    }
+}
+
 enum VersusOpponent: String, CaseIterable, Identifiable {
     case bot
     case gameCenter
 
     var id: String { rawValue }
-    var title: String { self == .bot ? "BOT" : "GAME CENTER" }
+    var title: LocalizedStringResource {
+        self == .bot ? "BOT" : "GAME CENTER"
+    }
     var icon: String { self == .bot ? "cpu" : "person.2.fill" }
 }
 @MainActor
@@ -39,6 +65,12 @@ final class StyleTriggerViewModel {
     var selectedTeamSize = 1
     var menuPage = 1
     var versusOpponent: VersusOpponent = .bot
+    var appLanguage =
+        AppLanguage(
+            rawValue: UserDefaults.standard.string(
+                forKey: "styleTrigger.appLanguage"
+            ) ?? ""
+        ) ?? .system
     private let repository = GameDataRepository()
     private let progressionStore = ProgressionStore()
     private let music = MetalMusicService()
@@ -46,9 +78,30 @@ final class StyleTriggerViewModel {
     private var timerTask: Task<Void, Never>?
     private var saveTask: Task<Void, Never>?
     private var loadInProgress = false
-    private static let environmentIDs = [
-        "neon-rooftop", "void-cathedral", "chrome-subway",
-    ]
+    let story = StoryViewModel()
+
+    func selectStoryChapter(_ chapter: StoryChapter) {
+        guard selectedMode == .story,
+            story.select(chapter, unlockedChapter: progress.storyChapter)
+        else {
+            return
+        }
+
+        selectedDifficulty = chapter.difficulty
+        progress.selectedEnvironmentID = chapter.environmentID
+        screen = .lobby
+        saveProgress()
+    }
+
+    func localizedGameText(_ source: String) -> String {
+        let usesGerman =
+            appLanguage == .german
+            || (appLanguage == .system
+                && Locale.preferredLanguages.first?.hasPrefix("de") == true)
+        guard usesGerman else { return source }
+        return content?.germanLocalization[source] ?? source
+    }
+
     var selectedCharacter: GameCharacter? {
         content?.characters.first { $0.id == progress.selectedCharacterID }
     }
@@ -86,6 +139,7 @@ final class StyleTriggerViewModel {
     }
     func isCharacterUnlocked(_ character: GameCharacter) -> Bool {
         character.unlocked
+            || accountLevel >= character.unlockLevel
             || progress.unlockedCharacterIDs.contains(character.id)
     }
     var availableCombos: [ComboDefinition] {
@@ -133,6 +187,10 @@ final class StyleTriggerViewModel {
             let loadedProgress = await progressionStore.load()
             guard !Task.isCancelled else { return }
             content = loadedContent
+            story.configure(
+                with: loadedContent.story,
+                enemies: loadedContent.enemies
+            )
             progress = loadedProgress
             applyConfiguredUnlocks()
             repairProgressReferences()
@@ -196,21 +254,43 @@ final class StyleTriggerViewModel {
         progress.selectedSkinByCharacter[characterID] = id
         saveProgress()
     }
+
     func selectEnvironment(_ id: String) {
-        guard Self.environmentIDs.contains(id) else { return }
+        guard selectedMode != .story,
+            content?.story.arenas.contains(where: { $0.id == id }) == true
+        else {
+            return
+        }
+
         progress.selectedEnvironmentID = id
         saveProgress()
     }
+
     func chooseRandomEnvironment() {
+        guard selectedMode != .story else { return }
+
         progress.selectedEnvironmentID =
-            Self.environmentIDs.randomElement() ?? Self.environmentIDs[0]
+            content?.story.arenas.randomElement()?.id
+            ?? progress.selectedEnvironmentID
+
         saveProgress()
     }
+
     func openLobby(for mode: GameModeKind) {
-        guard progress.unlockedModes.contains(mode) else { return }
+        guard progress.unlockedModes.contains(mode) else {
+            return
+        }
+
         selectedMode = mode
-        screen = .lobby
+
+        if mode == .story {
+            story.present()
+        } else {
+            story.isPresented = false
+            screen = .lobby
+        }
     }
+
     func returnToMenu() {
         timerTask?.cancel()
         timerTask = nil
@@ -218,20 +298,41 @@ final class StyleTriggerViewModel {
         screen = .menu
         music.setEnabled(progress.isSoundEnabled)
     }
+
     func startMatch() {
         guard screen == .lobby,
-            isSelectedModeUnlocked,
-            let duration = selectedModeDefinition?.matchDuration
-        else {
-            return
+            isSelectedModeUnlocked
+        else { return }
+
+        let duration: Int
+
+        if selectedMode == .story {
+            guard let chapter = story.selectedChapter,
+                story.isUnlocked(
+                    chapter,
+                    unlockedChapter: progress.storyChapter
+                )
+            else { return }
+
+            duration = selectedModeDefinition?.matchDuration ?? 180
+        } else {
+            guard let configuredDuration = selectedModeDefinition?.matchDuration
+            else { return }
+
+            duration = configuredDuration
         }
+
         remainingSeconds = duration
         combat = .initial
         result = nil
         isRevivePromptPresented = false
         screen = .combat
-        if selectedMode != .training { startTimer() }
+
+        if selectedMode != .training {
+            startTimer()
+        }
     }
+
     func startSelectedMatch() {
         if selectedMode == .versus && versusOpponent == .gameCenter {
             multiplayer.beginMatchmaking(teamSize: selectedTeamSize)
@@ -277,6 +378,14 @@ final class StyleTriggerViewModel {
         saveProgress()
         screen = .results
     }
+    func setLanguage(_ language: AppLanguage) {
+        appLanguage = language
+        UserDefaults.standard.set(
+            language.rawValue,
+            forKey: "styleTrigger.appLanguage"
+        )
+    }
+
     func setSoundEnabled(_ enabled: Bool) {
         progress.isSoundEnabled = enabled
         music.setEnabled(enabled)
@@ -377,10 +486,25 @@ final class StyleTriggerViewModel {
             result.totalScore
         )
         progress.styleShards += max(20, result.totalScore / 40)
-        if selectedMode == .story && result.didWin {
-            progress.storyChapter += 1
+        applyConfiguredUnlocks()
+
+        if selectedMode == .story,
+            result.didWin,
+            let chapter = story.selectedChapter,
+            chapter.number == progress.storyChapter
+        {
+
+            progress.styleShards += chapter.rewardShards
+
+            if chapter.number < story.chapters.count {
+                progress.storyChapter = chapter.number + 1
+            } else {
+                progress.storyChapter = story.chapters.count + 1
+            }
+
             applyConfiguredUnlocks()
         }
+
         if selectedMode == .timedEvent && result.didWin {
             progress.eventCurrency += max(1, result.totalScore / 500)
             if let rewardID = currentEvent?.rewardSkinIDs.first(where: {
@@ -402,42 +526,38 @@ final class StyleTriggerViewModel {
             }
         }
         guard let content else { return }
-        for character in content.characters where character.unlocked {
-            progress.unlockedCharacterIDs.insert(character.id)
-            for skinID in character.unlockedSkins.prefix(1) {
-                progress.unlockedSkinIDs.insert(skinID)
-            }
-            for weaponID in character.defaultWeaponIDs {
-                if content.weapons.first(where: { $0.id == weaponID })?
-                    .unlockedByDefault == true
-                {
-                    progress.unlockedWeaponIDs.insert(weaponID)
-                }
-            }
+
+        for weapon in content.weapons where weapon.unlockedByDefault {
+            progress.unlockedWeaponIDs.insert(weapon.id)
         }
-        for (index, character) in content.characters.enumerated()
-        where index < progress.storyChapter {
+
+        for character in content.characters
+        where character.unlocked || accountLevel >= character.unlockLevel {
             progress.unlockedCharacterIDs.insert(character.id)
+
             if let defaultSkin = character.unlockedSkins.first {
                 progress.unlockedSkinIDs.insert(defaultSkin)
                 progress.selectedSkinByCharacter[
                     character.id,
                     default: defaultSkin
-                ] =
-                    progress.selectedSkinByCharacter[character.id]
-                    ?? defaultSkin
+                ] = progress.selectedSkinByCharacter[character.id] ?? defaultSkin
             }
+
             for weaponID in character.defaultWeaponIDs {
                 progress.unlockedWeaponIDs.insert(weaponID)
             }
+
+            let availableWeaponIDs = character.compatibleWeaponIDs.filter { id in
+                content.weapons.first(where: { $0.id == id })?
+                    .unlockedByDefault == true
+                    || character.defaultWeaponIDs.contains(id)
+            }
             progress.equippedWeaponIDsByCharacter[
                 character.id,
-                default: character.defaultWeaponIDs
-            ] =
-                progress.equippedWeaponIDsByCharacter[character.id]
-                ?? character.defaultWeaponIDs
+                default: availableWeaponIDs
+            ] = progress.equippedWeaponIDsByCharacter[character.id]
+                ?? availableWeaponIDs
         }
-        saveProgress()
     }
     private func repairProgressReferences() {
         guard let content else { return }
@@ -451,8 +571,10 @@ final class StyleTriggerViewModel {
             progress.selectedCharacterID = first.id
         }
 
-        if !Self.environmentIDs.contains(progress.selectedEnvironmentID) {
-            progress.selectedEnvironmentID = Self.environmentIDs[0]
+        if !content.story.arenas.contains(where: {
+            $0.id == progress.selectedEnvironmentID
+        }), let firstArenaID = content.story.arenas.first?.id {
+            progress.selectedEnvironmentID = firstArenaID
         }
 
         repairSelectedLoadout()

@@ -8,11 +8,35 @@
         "aggression": 0.55
     },
     {
+        "id": "signal-hunter",
+        "name": "SIGNAL HUNTER",
+        "visualStyle": "hunter(cyan:#00F6FF,visor:white)",
+        "baseHealth": 210,
+        "baseVelocity": 1.2,
+        "aggression": 0.65
+    },
+    {
+        "id": "choir-guard",
+        "name": "CHOIR GUARD",
+        "visualStyle": "sentinel(violet:#8B5CF6,halo:broken)",
+        "baseHealth": 280,
+        "baseVelocity": 0.78,
+        "aggression": 0.72
+    },
+    {
+        "id": "rail-stalker",
+        "name": "RAIL STALKER",
+        "visualStyle": "stalker(orange:#FF6B00,armor:black)",
+        "baseHealth": 240,
+        "baseVelocity": 1.35,
+        "aggression": 0.82
+    },
+    {
         "id": "breaker",
         "name": "CHROME BREAKER",
         "visualStyle": "armor(silver:#D1D5DB,core:#00F6FF)",
-        "baseHealth": 260,
-        "baseVelocity": 0.72,
-        "aggression": 0.7
+        "baseHealth": 420,
+        "baseVelocity": 0.68,
+        "aggression": 0.9
     }
 ]

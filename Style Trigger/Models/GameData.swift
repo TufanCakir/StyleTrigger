@@ -123,6 +123,8 @@ nonisolated struct GameCharacter: Codable, Identifiable, Hashable, Sendable {
 
     let unlocked: Bool
 
+    let unlockLevel: Int
+
     let baseComboList: [String]
 
     let unlockedSkins: [String]
@@ -301,7 +303,7 @@ nonisolated enum GameModeKind: String, Codable, CaseIterable, Identifiable,
 
     var id: String { rawValue }
 
-    var displayName: String {
+    var displayName: LocalizedStringResource {
 
         switch self {
 
@@ -394,7 +396,13 @@ nonisolated enum GraphicsQuality: String, Codable, CaseIterable, Identifiable,
 
     var id: String { rawValue }
 
-    var displayName: String { rawValue.uppercased() }
+    var displayName: LocalizedStringResource {
+        switch self {
+        case .performance: "PERFORMANCE"
+        case .balanced: "BALANCED"
+        case .ultra: "ULTRA"
+        }
+    }
 
     var particleMultiplier: Double {
 
@@ -895,11 +903,15 @@ nonisolated struct GameContent: Sendable {
 
     let enemies: [EnemyDefinition]
 
+    let story: StoryContent
+
     let events: [TimedEventDefinition]
 
     let shopItems: [ShopItem]
 
     let accountTitles: [AccountTitleDefinition]
+
+    let germanLocalization: [String: String]
 
 }
 

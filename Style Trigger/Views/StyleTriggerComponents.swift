@@ -275,7 +275,7 @@ struct StyleTriggerBattleBar: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(name))
         .accessibilityValue(
-            Text("\(Int((healthFraction * 100).rounded())) percent health")
+            Text("\(healthFraction, format: .percent) health")
         )
     }
 }

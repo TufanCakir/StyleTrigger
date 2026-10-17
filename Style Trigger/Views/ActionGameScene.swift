@@ -155,6 +155,10 @@ final class ActionGameScene: SKScene {
 
     private var targetFrameRate = 60
     private var trainingMode = false
+    private var environmentID = "neon-rooftop"
+    private var storyEnemies: [EnemyDefinition] = []
+    private var isStoryMode = false
+    private var maximumEnemyHealth: CGFloat = 98
     private var attackMultiplier = 1.0
     private var speedMultiplier = 1.0
     private var styleMultiplier = 1.0
@@ -215,8 +219,10 @@ final class ActionGameScene: SKScene {
         attackMultiplier: Double,
         speedMultiplier: Double,
         styleMultiplier: Double,
-        healthMultiplier: Double
-
+        healthMultiplier: Double,
+        environmentID: String,
+        storyEnemies: [EnemyDefinition],
+        isStoryMode: Bool
     ) {
 
         self.appearance = appearance
@@ -240,25 +246,47 @@ final class ActionGameScene: SKScene {
         self.styleMultiplier = styleMultiplier
         self.maximumPlayerHealth = 100 * healthMultiplier
         self.playerHealth = maximumPlayerHealth
+        self.environmentID = environmentID
+        self.storyEnemies = storyEnemies
+        self.isStoryMode = isStoryMode
 
         configureCombosForCurrentWeapon()
 
     }
 
+    private var arenaColor: SKColor {
+        switch environmentID {
+        case "void-cathedral":
+            SKColor(red: 0.19, green: 0.06, blue: 0.24, alpha: 1)
+        case "chrome-subway":
+            SKColor(red: 0.10, green: 0.23, blue: 0.27, alpha: 1)
+        default:
+            SKColor(red: 0.02, green: 0.08, blue: 0.15, alpha: 1)
+        }
+    }
+
     func switchWeapon() {
+        guard weapons.count > 1 else { return }
+        let nextIndex = (weaponIndex + 1) % weapons.count
+        equipWeapon(id: weapons[nextIndex].id)
+    }
 
-        guard weapons.count > 1, !isGameOver else { return }
+    func equipWeapon(id: Weapon.ID) {
+        guard !isGameOver,
+              let newIndex = weapons.firstIndex(where: { $0.id == id }),
+              newIndex != weaponIndex
+        else {
+            return
+        }
 
-        weaponIndex = (weaponIndex + 1) % weapons.count
-
+        weaponIndex = newIndex
+        player.childNode(withName: "weapon")?.removeAllActions()
         rebuildWeapon()
-
         configureCombosForCurrentWeapon()
-
-        showCallout(currentWeapon?.name ?? "WEAPON", color: appearanceColor)
-
-        if let id = currentWeapon?.id { onWeaponChanged?(id) }
-
+        combo = 0
+        showCallout(currentWeapon?.name ?? "WEAPON", color: weaponColor)
+        updateHUD()
+        onWeaponChanged?(id)
     }
 
     func revivePlayer(healthFraction: Double = 0.5) {
@@ -356,10 +384,21 @@ final class ActionGameScene: SKScene {
     }
 
     private func buildArena() {
+        switch environmentID {
+        case "void-cathedral":
+            buildCathedralArena()
+        case "chrome-subway":
+            buildSubwayArena()
+        default:
+            buildRooftopArena()
+        }
+    }
+
+    private func buildRooftopArena() {
 
         let backdrop = SKShapeNode(rect: CGRect(origin: .zero, size: size))
 
-        backdrop.fillColor = backgroundColor
+        backdrop.fillColor = arenaColor
 
         backdrop.strokeColor = .clear
 
@@ -479,6 +518,201 @@ final class ActionGameScene: SKScene {
 
         }
 
+    }
+
+    private func buildCathedralArena() {
+        let backdrop = SKShapeNode(
+            rect: CGRect(origin: .zero, size: size)
+        )
+        backdrop.fillColor = SKColor(
+            red: 0.08,
+            green: 0.025,
+            blue: 0.12,
+            alpha: 1
+        )
+        backdrop.strokeColor = .clear
+        backdrop.zPosition = -20
+        worldNode.addChild(backdrop)
+
+        // Gotische Säulen
+        for index in 0..<5 {
+            let x = CGFloat(index) * size.width / 4
+
+            let pillar = SKShapeNode(
+                rectOf: CGSize(width: 28, height: size.height * 0.72)
+            )
+            pillar.position = CGPoint(
+                x: x,
+                y: floorY + size.height * 0.36
+            )
+            pillar.fillColor = SKColor(
+                red: 0.12,
+                green: 0.06,
+                blue: 0.17,
+                alpha: 1
+            )
+            pillar.strokeColor = .purple
+            pillar.lineWidth = 1
+            pillar.zPosition = -15
+            worldNode.addChild(pillar)
+
+            let capital = SKShapeNode(
+                rectOf: CGSize(width: 46, height: 12)
+            )
+            capital.position = CGPoint(x: 0, y: -size.height * 0.36 + 18)
+            capital.fillColor = .darkGray
+            capital.strokeColor = .purple
+            pillar.addChild(capital)
+        }
+
+        // Magisches Fenster
+        let window = SKShapeNode(
+            ellipseOf: CGSize(width: 110, height: 210)
+        )
+        window.position = CGPoint(
+            x: size.width / 2,
+            y: floorY + 210
+        )
+        window.fillColor = SKColor(
+            red: 0.36,
+            green: 0.07,
+            blue: 0.48,
+            alpha: 0.65
+        )
+        window.strokeColor = .systemPink
+        window.lineWidth = 3
+        window.glowWidth = 14
+        window.zPosition = -17
+        worldNode.addChild(window)
+
+        let floor = SKShapeNode(
+            rect: CGRect(
+                x: 0,
+                y: 0,
+                width: size.width,
+                height: floorY
+            )
+        )
+        floor.fillColor = SKColor(
+            red: 0.045,
+            green: 0.025,
+            blue: 0.08,
+            alpha: 1
+        )
+        floor.strokeColor = .clear
+        floor.zPosition = -8
+        worldNode.addChild(floor)
+
+        let floorLine = SKShapeNode(
+            rectOf: CGSize(width: size.width, height: 3)
+        )
+        floorLine.position = CGPoint(x: size.width / 2, y: floorY)
+        floorLine.fillColor = .systemPurple
+        floorLine.strokeColor = .clear
+        floorLine.glowWidth = 10
+        floorLine.zPosition = -5
+        worldNode.addChild(floorLine)
+    }
+
+    private func buildSubwayArena() {
+        let backdrop = SKShapeNode(
+            rect: CGRect(origin: .zero, size: size)
+        )
+        backdrop.fillColor = SKColor(
+            red: 0.025,
+            green: 0.085,
+            blue: 0.105,
+            alpha: 1
+        )
+        backdrop.strokeColor = .clear
+        backdrop.zPosition = -20
+        worldNode.addChild(backdrop)
+
+        // U-Bahn-Tunnel
+        let tunnel = SKShapeNode(
+            rectOf: CGSize(
+                width: size.width * 0.72,
+                height: 240
+            ),
+            cornerRadius: 38
+        )
+        tunnel.position = CGPoint(
+            x: size.width / 2,
+            y: floorY + 155
+        )
+        tunnel.fillColor = .black
+        tunnel.strokeColor = .cyan.withAlphaComponent(0.35)
+        tunnel.lineWidth = 3
+        tunnel.zPosition = -18
+        worldNode.addChild(tunnel)
+
+        // Metallpfeiler
+        for index in 0..<4 {
+            let x = CGFloat(index) * size.width / 3
+
+            let pillar = SKShapeNode(
+                rectOf: CGSize(width: 22, height: 300)
+            )
+            pillar.position = CGPoint(x: x, y: floorY + 150)
+            pillar.fillColor = SKColor(
+                red: 0.13,
+                green: 0.19,
+                blue: 0.22,
+                alpha: 1
+            )
+            pillar.strokeColor = .cyan.withAlphaComponent(0.45)
+            pillar.lineWidth = 2
+            pillar.zPosition = -14
+            worldNode.addChild(pillar)
+        }
+
+        // Neonlicht an der Decke
+        for index in 0..<3 {
+            let light = SKShapeNode(
+                rectOf: CGSize(width: 72, height: 5)
+            )
+            light.position = CGPoint(
+                x: CGFloat(index + 1) * size.width / 4,
+                y: floorY + 320
+            )
+            light.fillColor = .cyan
+            light.strokeColor = .clear
+            light.glowWidth = 12
+            light.zPosition = -10
+            worldNode.addChild(light)
+        }
+
+        // Bahnsteig
+        let platform = SKShapeNode(
+            rect: CGRect(
+                x: 0,
+                y: 0,
+                width: size.width,
+                height: floorY
+            )
+        )
+        platform.fillColor = SKColor(
+            red: 0.055,
+            green: 0.085,
+            blue: 0.10,
+            alpha: 1
+        )
+        platform.strokeColor = .clear
+        platform.zPosition = -8
+        worldNode.addChild(platform)
+
+        let platformEdge = SKShapeNode(
+            rectOf: CGSize(width: size.width, height: 4)
+        )
+        platformEdge.position = CGPoint(
+            x: size.width / 2,
+            y: floorY
+        )
+        platformEdge.fillColor = .cyan
+        platformEdge.strokeColor = .clear
+        platformEdge.glowWidth = 9
+        platformEdge.zPosition = -5
+        worldNode.addChild(platformEdge)
     }
 
     private func buildHUD() {
@@ -648,9 +882,12 @@ final class ActionGameScene: SKScene {
 
         let body = SKShapeNode(path: bodyPath)
 
-        body.fillColor = SKColor(red: 0.04, green: 0.015, blue: 0.08, alpha: 1)
+        let definition = isStoryMode ? storyEnemies.first : nil
+        let enemyColor = color(for: definition)
 
-        body.strokeColor = .systemPurple
+        body.fillColor = enemyColor.withAlphaComponent(0.22)
+
+        body.strokeColor = enemyColor
 
         body.lineWidth = 3
 
@@ -662,9 +899,9 @@ final class ActionGameScene: SKScene {
 
         hornLeft.position = CGPoint(x: -8, y: 30)
 
-        hornLeft.fillColor = .systemPurple
+        hornLeft.fillColor = enemyColor.withAlphaComponent(0.75)
 
-        hornLeft.strokeColor = .systemPink
+        hornLeft.strokeColor = enemyColor
 
         enemy.addChild(hornLeft)
 
@@ -672,9 +909,9 @@ final class ActionGameScene: SKScene {
 
         hornRight.position = CGPoint(x: 8, y: 30)
 
-        hornRight.fillColor = .systemPurple
+        hornRight.fillColor = enemyColor.withAlphaComponent(0.75)
 
-        hornRight.strokeColor = .systemPink
+        hornRight.strokeColor = enemyColor
 
         enemy.addChild(hornRight)
 
@@ -688,7 +925,7 @@ final class ActionGameScene: SKScene {
 
         eye.position = CGPoint(x: -3, y: 19)
 
-        eye.fillColor = .systemPink
+        eye.fillColor = enemyColor
 
         eye.strokeColor = .white
 
@@ -696,7 +933,7 @@ final class ActionGameScene: SKScene {
 
         enemy.addChild(eye)
 
-        enemyHealthBar.fillColor = .systemPink
+        enemyHealthBar.fillColor = enemyColor
 
         enemyHealthBar.strokeColor = .white.withAlphaComponent(0.25)
 
@@ -704,9 +941,16 @@ final class ActionGameScene: SKScene {
 
         enemy.addChild(enemyHealthBar)
 
-        enemyHealth = 80 + CGFloat(wave * 18)
+        maximumEnemyHealth =
+            definition.map { CGFloat($0.baseHealth) } ?? 80 + CGFloat(wave * 18)
+        enemyHealth = maximumEnemyHealth
 
-        enemyAttackTime = lastUpdateTime + 1.25
+        let aggression = definition?.aggression ?? 0.55
+        enemyAttackTime = lastUpdateTime + max(0.55, 1.8 - aggression)
+
+        if let definition {
+            showCallout(definition.name, color: enemyColor)
+        }
 
         worldNode.addChild(enemy)
 
@@ -728,6 +972,21 @@ final class ActionGameScene: SKScene {
 
         showCallout("WAVE \(wave)", color: .systemPink)
 
+    }
+
+    private func color(for enemy: EnemyDefinition?) -> SKColor {
+        switch enemy?.id {
+        case "signal-hunter":
+            return .cyan
+        case "choir-guard":
+            return .systemPurple
+        case "rail-stalker":
+            return .systemOrange
+        case "breaker":
+            return .lightGray
+        default:
+            return .systemPink
+        }
     }
 
     private func helmetPath(style: HelmetStyle) -> CGPath {
@@ -1849,6 +2108,10 @@ final class ActionGameScene: SKScene {
             withKey: "defeat"
         )
 
+        if isStoryMode {
+            return
+        }
+
         // Schedule the next wave on the scene, not the removed enemy.
         run(
             .sequence([
@@ -2078,8 +2341,6 @@ final class ActionGameScene: SKScene {
         healthBar.xScale = playerScale
 
         healthBar.fillColor = playerHealth < 30 ? .systemRed : .cyan
-
-        let maximumEnemyHealth = 80 + CGFloat(wave * 18)
 
         enemyHealthBar.xScale = max(0.001, enemyHealth / maximumEnemyHealth)
 

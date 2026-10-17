@@ -1,0 +1,69 @@
+{
+    "chapters": [
+        {
+            "id": "chapter_01",
+            "number": 1,
+            "title": "SIGNAL IN THE RAIN",
+            "description":
+                "Vex follows a stolen combat signal across the rooftops.",
+            "briefing":
+                "Reach the transmitter before the Neon Wraith erases the source.",
+            "environmentID": "neon-rooftop",
+            "enemyIDs": [
+                "signal-hunter"
+            ],
+            "difficulty": "NORMAL",
+            "rewardShards": 100
+        },
+        {
+            "id": "chapter_02",
+            "number": 2,
+            "title": "THE HOLLOW CHOIR",
+            "description":
+                "The signal leads beneath the city into a corrupted sanctuary.",
+            "briefing":
+                "Break the Choir Guard and recover the memory sealed in the cathedral.",
+            "environmentID": "void-cathedral",
+            "enemyIDs": [
+                "choir-guard"
+            ],
+            "difficulty": "HARD",
+            "rewardShards": 175
+        },
+        {
+            "id": "chapter_03",
+            "number": 3,
+            "title": "LAST TRAIN TO ZERO",
+            "description":
+                "A chrome war machine carries the final key through the abandoned metro.",
+            "briefing":
+                "Board the last train, defeat the Chrome Breaker, and expose who built the signal.",
+            "environmentID": "chrome-subway",
+            "enemyIDs": [
+                "breaker"
+            ],
+            "difficulty": "EXTREME",
+            "rewardShards": 300
+        }
+    ],
+    "arenas": [
+        {
+            "id": "neon-rooftop",
+            "name": "NEON ROOFTOPS",
+            "subtitle": "Rain, antennas and open air",
+            "systemImage": "building.2.crop.circle"
+        },
+        {
+            "id": "void-cathedral",
+            "name": "VOID CATHEDRAL",
+            "subtitle": "A sanctuary infected by the signal",
+            "systemImage": "sparkles"
+        },
+        {
+            "id": "chrome-subway",
+            "name": "CHROME SUBWAY",
+            "subtitle": "An abandoned line beneath the city",
+            "systemImage": "tram.fill"
+        }
+    ]
+}

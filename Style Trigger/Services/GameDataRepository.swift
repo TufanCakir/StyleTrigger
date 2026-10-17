@@ -42,11 +42,16 @@ struct GameDataRepository {
                 as: ProgressionConfiguration.self
             ),
             enemies: try decode("enemies", as: [EnemyDefinition].self),
+            story: try decode("story", as: StoryContent.self),
             events: try decode("events", as: [TimedEventDefinition].self),
             shopItems: try decode("shop", as: [ShopItem].self),
             accountTitles: try decode(
                 "titles",
                 as: [AccountTitleDefinition].self
+            ),
+            germanLocalization: try decode(
+                "localization_de",
+                as: [String: String].self
             )
         )
         try validate(content)
@@ -94,6 +99,16 @@ struct GameDataRepository {
             errors: &errors
         )
         checkUnique(
+            content.story.chapters.map(\.id),
+            category: "story chapter",
+            errors: &errors
+        )
+        checkUnique(
+            content.story.arenas.map(\.id),
+            category: "story arena",
+            errors: &errors
+        )
+        checkUnique(
             content.events.map(\.id),
             category: "event",
             errors: &errors
@@ -118,8 +133,42 @@ struct GameDataRepository {
         let skinIDs = Set(content.skins.map(\.id))
         let weaponIDs = Set(content.weapons.map(\.id))
         let comboIDs = Set(content.combos.map(\.id))
+        let enemyIDs = Set(content.enemies.map(\.id))
+        let arenaIDs = Set(content.story.arenas.map(\.id))
+
+        for chapter in content.story.chapters {
+            if !arenaIDs.contains(chapter.environmentID) {
+                errors.append(
+                    "\(chapter.id) references missing arena \(chapter.environmentID)"
+                )
+            }
+            checkReferences(
+                chapter.enemyIDs,
+                valid: enemyIDs,
+                owner: chapter.id,
+                kind: "enemy",
+                errors: &errors
+            )
+            if chapter.enemyIDs.isEmpty {
+                errors.append("\(chapter.id) has no enemies")
+            }
+        }
+
+        let orderedChapterNumbers = content.story.chapters.map(\.number)
+            .sorted()
+        let expectedChapterNumbers = Array(
+            1...max(1, content.story.chapters.count)
+        )
+        if content.story.chapters.isEmpty {
+            errors.append("no story chapters configured")
+        } else if orderedChapterNumbers != expectedChapterNumbers {
+            errors.append("story chapter numbers must be unique and contiguous")
+        }
 
         for character in content.characters {
+            if character.unlockLevel < 1 {
+                errors.append("\(character.id) has invalid unlock level")
+            }
             checkReferences(
                 character.unlockedSkins,
                 valid: skinIDs,

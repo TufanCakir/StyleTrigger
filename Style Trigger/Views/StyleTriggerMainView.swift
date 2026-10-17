@@ -62,6 +62,7 @@ struct StyleTriggerMainView: View {
 
         }
 
+        .environment(\.locale, model.appLanguage.locale)
         .preferredColorScheme(.dark)
 
         .persistentSystemOverlays(.hidden)
@@ -124,6 +125,23 @@ struct StyleTriggerMainView: View {
 
         }
 
+        .fullScreenCover(
+            isPresented: Binding(
+                get: { model.story.isPresented },
+                set: { isPresented in
+                    if !isPresented {
+                        model.story.dismiss()
+                    }
+                }
+            )
+        ) {
+            StorySelectionScreen(
+                story: model.story,
+                unlockedChapter: model.progress.storyChapter,
+                selectChapter: model.selectStoryChapter
+            )
+        }
+
         .onChange(of: model.multiplayer.isConnected) { _, isConnected in
 
             if isConnected, model.screen == .lobby,
@@ -153,8 +171,10 @@ private struct MenuPager: View {
         StyleTriggerTab(id: 1, title: "BATTLE", icon: "scope"),
 
         StyleTriggerTab(id: 2, title: "COMBOS", icon: "book.closed.fill"),
+        
+        StyleTriggerTab(id: 3, title: "SHOP", icon: "cart"),
 
-        StyleTriggerTab(id: 3, title: "SETTINGS", icon: "gear"),
+        StyleTriggerTab(id: 4, title: "SETTINGS", icon: "gear"),
 
     ]
 
@@ -163,8 +183,6 @@ private struct MenuPager: View {
         VStack(spacing: 0) {
 
             StyleTriggerAccountHeader(model: model)
-                .padding(.horizontal, 12)
-                .padding(.top, 6)
 
             StyleTriggerTopTabBar(selection: $model.menuPage, tabs: tabs)
 
@@ -182,9 +200,12 @@ private struct MenuPager: View {
 
                     .tag(2)
 
+                StyleTriggerShopView(model: model)
+                    .tag(3)
+
                 StyleTriggerSettingsView(model: model)
 
-                    .tag(3)
+                    .tag(4)
 
             }
 
@@ -253,7 +274,7 @@ private struct ArsenalView: View {
 
                                 .frame(height: 48)
 
-                                Text(weapon.name)
+                                Text(model.localizedGameText(weapon.name))
 
                                     .font(
                                         .subheadline.monospaced().weight(.black)
@@ -349,9 +370,6 @@ private struct ArsenalView: View {
                     .font(.caption.monospaced())
                     .multilineTextAlignment(.center)
                     .foregroundStyle(StyleTriggerPalette.silver.opacity(0.55))
-
-                StyleTriggerShopView(model: model)
-
             }
 
             .padding(.horizontal, 20)
@@ -403,6 +421,9 @@ private struct ModeSelectView: View {
                         ModeButton(
 
                             mode: mode,
+                            localizedDescription: model.localizedGameText(
+                                mode.description
+                            ),
 
                             isUnlocked: model.progress.unlockedModes.contains(
 
@@ -442,6 +463,8 @@ private struct ModeButton: View {
 
     let mode: GameModeDefinition
 
+    let localizedDescription: String
+
     let isUnlocked: Bool
 
     let event: TimedEventDefinition?
@@ -476,7 +499,7 @@ private struct ModeButton: View {
 
                 )
 
-                Text(mode.description)
+                Text(localizedDescription)
 
                     .font(.caption2)
 
@@ -568,7 +591,9 @@ private struct ComboAndSettingsView: View {
 
                 NeonHeader(
 
-                    kicker: model.selectedWeapon?.name ?? "WEAPON",
+                    kicker: LocalizedStringResource(
+                        stringLiteral: model.selectedWeapon?.name ?? "WEAPON"
+                    ),
 
                     title: "COMBO BOOK",
 
@@ -580,20 +605,14 @@ private struct ComboAndSettingsView: View {
 
                     ForEach(model.availableCombos) { combo in
 
-                        ComboRow(combo: combo)
+                        ComboRow(
+                            combo: combo,
+                            localizedName: model.localizedGameText(combo.name)
+                        )
 
                     }
 
                 }
-
-                NeonHeader(
-                    kicker: "PLAYER",
-                    title: "SETTINGS",
-                    icon: "gearshape.fill"
-                )
-
-                ScoreSummary(progress: model.progress)
-
             }
 
             .padding(.horizontal, 20)
@@ -612,13 +631,15 @@ private struct ComboRow: View {
 
     let combo: ComboDefinition
 
+    let localizedName: String
+
     var body: some View {
 
         VStack(alignment: .leading, spacing: 10) {
 
             VStack(alignment: .leading, spacing: 4) {
 
-                Text(combo.name)
+                Text(localizedName)
 
                     .font(.headline.monospaced().weight(.black))
 
@@ -686,54 +707,6 @@ private struct ComboRow: View {
 
 }
 
-private struct ScoreSummary: View {
-
-    let progress: PlayerProgress
-
-    var body: some View {
-
-        VStack(alignment: .leading, spacing: 8) {
-
-            Text("HIGH SCORES")
-
-                .font(.caption.monospaced().weight(.black))
-
-                .foregroundStyle(.secondary)
-
-            ForEach(GameModeKind.allCases) { mode in
-
-                HStack {
-
-                    Text(mode.displayName)
-
-                    Spacer()
-
-                    Text(progress.highScores[mode, default: 0], format: .number)
-
-                        .foregroundStyle(StyleTriggerPalette.cyan)
-
-                }
-
-                .font(.caption.monospaced())
-
-            }
-
-        }
-
-        .padding(14)
-
-        .background(
-
-            StyleTriggerPalette.panel,
-
-            in: RoundedRectangle(cornerRadius: 12)
-
-        )
-
-    }
-
-}
-
 private struct MatchLobbyView: View {
 
     let model: StyleTriggerViewModel
@@ -742,13 +715,7 @@ private struct MatchLobbyView: View {
 
     @State private var detailCharacter: GameCharacter?
 
-    private let environments = [
-        ("neon-rooftop", "NEON ROOFTOP"),
-        ("void-cathedral", "VOID CATHEDRAL"),
-        ("chrome-subway", "CHROME SUBWAY"),
-    ]
-
-    private var startButtonTitle: String {
+    private var startButtonTitle: LocalizedStringResource {
         if model.selectedMode == .training { return "START TRAINING" }
         if model.selectedMode == .versus {
             return model.versusOpponent == .bot
@@ -812,87 +779,104 @@ private struct MatchLobbyView: View {
 
                     case .character:
 
-                        LazyVGrid(
-
-                            columns: [
-                                GridItem(.adaptive(minimum: 150), spacing: 12)
-                            ],
-
-                            spacing: 12
-
-                        ) {
-
-                            ForEach(model.content?.characters ?? []) {
-                                character in
-
-                                CharacterSelectionCard(
-
-                                    character: character,
-
-                                    isSelected: model.progress
-                                        .selectedCharacterID == character.id,
-
-                                    isUnlocked: model.isCharacterUnlocked(
-                                        character
-                                    ),
-
-                                    select: {
-                                        model.selectCharacter(character.id)
-                                    },
-
-                                    showDetails: { detailCharacter = character }
-
-                                )
-
-                            }
-
-                        }
+                        CharacterRosterView(
+                            characters: model.content?.characters ?? [],
+                            selectedCharacterID: model.progress.selectedCharacterID,
+                            accountLevel: model.accountLevel,
+                            isUnlocked: model.isCharacterUnlocked,
+                            select: { model.selectCharacter($0.id) },
+                            showDetails: { detailCharacter = $0 }
+                        )
 
                     case .environment:
+                        if model.selectedMode == .story {
+                            if let chapter = model.story.selectedChapter {
+                                VStack(spacing: 12) {
+                                    ArenaPreview(
+                                        environmentID: chapter.environmentID
+                                    )
+                                    .frame(height: 150)
+                                    .clipShape(
+                                        RoundedRectangle(cornerRadius: 16)
+                                    )
 
-                        LazyVGrid(columns: [GridItem(.flexible())], spacing: 14)
-                        {
+                                    Text(chapter.title)
+                                        .font(
+                                            .headline.monospaced().weight(
+                                                .black
+                                            )
+                                        )
 
-                            ForEach(environments, id: \.0) { environment in
+                                    Label(
+                                        chapter.environmentID
+                                            .replacingOccurrences(
+                                                of: "-",
+                                                with: " "
+                                            )
+                                            .uppercased(),
+                                        systemImage: "lock.fill"
+                                    )
+                                    .foregroundStyle(StyleTriggerPalette.cyan)
 
-                                EnvironmentSelectionCard(
-
-                                    id: environment.0,
-
-                                    name: environment.1,
-
-                                    isSelected: model.progress
-                                        .selectedEnvironmentID == environment.0
-
-                                ) {
-
-                                    model.selectEnvironment(environment.0)
-
+                                    Text("STORY ARENA")
+                                        .font(.caption.monospaced())
+                                        .foregroundStyle(.secondary)
                                 }
+                            } else {
+                                ContentUnavailableView(
+                                    "NO CHAPTER SELECTED",
+                                    systemImage: "book.closed",
+                                    description: Text(
+                                        "Select a story chapter before choosing an arena."
+                                    )
+                                )
 
+                                Button("BACK TO STORY") {
+                                    model.openLobby(for: .story)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(StyleTriggerPalette.cyan)
+                            }
+                        } else {
+                            LazyVGrid(
+                                columns: [GridItem(.flexible())],
+                                spacing: 14
+                            ) {
+                                ForEach(model.story.arenas) { arena in
+                                    EnvironmentSelectionCard(
+                                        id: arena.id,
+                                        name: arena.name,
+                                        isSelected:
+                                            model.progress.selectedEnvironmentID
+                                            == arena.id
+                                    ) {
+                                        model.selectEnvironment(arena.id)
+                                    }
+                                }
                             }
 
+                            Button("RANDOM ARENA", systemImage: "shuffle") {
+                                model.chooseRandomEnvironment()
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(StyleTriggerPalette.cyan)
                         }
-
-                        Button("RANDOM ARENA", systemImage: "shuffle") {
-
-                            model.chooseRandomEnvironment()
-
-                        }
-
-                        .buttonStyle(.bordered)
-
-                        .tint(StyleTriggerPalette.cyan)
 
                     case .ready:
 
                         ReadyMatchCard(model: model)
 
-                        StyleTriggerDifficultyPicker(
-
-                            selection: Bindable(model).selectedDifficulty
-
-                        )
+                        if model.selectedMode == .story {
+                            Label(
+                                model.selectedDifficulty,
+                                systemImage: "lock.fill"
+                            )
+                            .foregroundStyle(StyleTriggerPalette.cyan)
+                        } else {
+                            StyleTriggerDifficultyPicker(
+                                selection: Bindable(model).selectedDifficulty
+                            )
+                        }
 
                         if model.selectedMode == .versus {
                             VStack(alignment: .leading, spacing: 10) {
@@ -1063,121 +1047,6 @@ private enum LobbyStep: Int {
 
 }
 
-private struct CharacterSelectionCard: View {
-
-    let character: GameCharacter
-
-    let isSelected: Bool
-
-    let isUnlocked: Bool
-
-    let select: () -> Void
-
-    let showDetails: () -> Void
-
-    var body: some View {
-
-        VStack(spacing: 8) {
-
-            StyleTriggerFighterArtwork(
-
-                name: character.name,
-
-                appearance: character.appearance
-
-            )
-
-            .frame(height: 120)
-
-            .opacity(isUnlocked ? 1 : 0.42)
-
-            VStack(spacing: 4) {
-
-                Text(character.name)
-
-                    .font(.headline.monospaced().weight(.black))
-
-                Text(character.description)
-
-                    .font(.caption2)
-
-                    .foregroundStyle(.secondary)
-
-                    .lineLimit(3)
-
-                    .frame(minHeight: 34, alignment: .top)
-
-            }
-
-            HStack(spacing: 6) {
-
-                Button(action: showDetails) {
-
-                    Image(systemName: "info.circle")
-
-                        .frame(width: 32, height: 28)
-
-                }
-
-                .foregroundStyle(StyleTriggerPalette.silver)
-
-                Button(action: select) {
-
-                    Label(
-
-                        isUnlocked
-                            ? (isSelected ? "SELECTED" : "SELECT") : "LOCKED",
-
-                        systemImage: isUnlocked
-
-                            ? (isSelected ? "checkmark.circle.fill" : "circle")
-                            : "lock.fill"
-
-                    )
-
-                    .font(.caption2.monospaced().weight(.black))
-
-                    .frame(maxWidth: .infinity)
-
-                    .frame(height: 28)
-
-                }
-
-                .disabled(!isUnlocked)
-
-                .foregroundStyle(
-                    isSelected ? StyleTriggerPalette.cyan : .secondary
-                )
-
-            }
-
-        }
-
-        .frame(maxWidth: .infinity)
-
-        .padding(8)
-
-        .background(
-            StyleTriggerPalette.panel.opacity(0.9),
-            in: RoundedRectangle(cornerRadius: 14)
-        )
-
-        .overlay {
-
-            RoundedRectangle(cornerRadius: 14)
-
-                .stroke(
-                    isSelected
-                        ? StyleTriggerPalette.cyan : .white.opacity(0.12),
-                    lineWidth: 2
-                )
-
-        }
-
-    }
-
-}
-
 private struct CharacterDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
@@ -1231,6 +1100,21 @@ private struct CharacterDetailView: View {
                         .foregroundStyle(
                             StyleTriggerPalette.silver.opacity(0.72)
                         )
+
+                    Label(
+                        model.isCharacterUnlocked(character)
+                            ? "UNLOCKED"
+                            : "UNLOCKS AT LEVEL \(character.unlockLevel)",
+                        systemImage: model.isCharacterUnlocked(character)
+                            ? "checkmark.seal.fill"
+                            : "lock.fill"
+                    )
+                    .font(.caption.monospaced().weight(.black))
+                    .foregroundStyle(
+                        model.isCharacterUnlocked(character)
+                            ? StyleTriggerPalette.cyan
+                            : StyleTriggerPalette.magenta
+                    )
 
                     detailSection("SKINS") {
 
@@ -1383,7 +1267,12 @@ private struct CharacterDetailView: View {
 
                         ForEach(characterCombos) { combo in
 
-                            ComboRow(combo: combo)
+                            ComboRow(
+                                combo: combo,
+                                localizedName: model.localizedGameText(
+                                    combo.name
+                                )
+                            )
 
                         }
 
@@ -1747,26 +1636,11 @@ private struct CombatScreen: View {
                 Spacer()
 
                 if model.equippedWeapons.count > 1 {
-                    HStack {
-                        Spacer()
-
-                        Button {
-                            scene.switchWeapon()
-                        } label: {
-                            Label(
-                                model.selectedWeapon?.name ?? "SWITCH",
-                                systemImage: "arrow.triangle.2.circlepath"
-                            )
-                            .font(.caption2.monospaced().weight(.black))
-                        }
-                        .buttonStyle(
-                            StyleTriggerPrimaryButtonStyle(
-                                color: StyleTriggerPalette.cyan
-                            )
-                        )
-                        .frame(maxWidth: 145)
-
-                        Spacer()
+                    CombatWeaponSwitcher(
+                        weapons: model.equippedWeapons,
+                        activeWeaponID: model.progress.selectedWeaponID
+                    ) { weaponID in
+                        scene.equipWeapon(id: weaponID)
                     }
                     .padding(.bottom, 30)
                 }
@@ -1819,7 +1693,20 @@ private struct CombatScreen: View {
                         + model.boostMagnitude(.weaponDamageBoost),
                     speedMultiplier: 1 + model.boostMagnitude(.speedBoost),
                     styleMultiplier: 1 + model.boostMagnitude(.styleBoost),
-                    healthMultiplier: 1 + model.boostMagnitude(.healthBoost)
+                    healthMultiplier: 1 + model.boostMagnitude(.healthBoost),
+
+                    environmentID: model.selectedMode == .story
+                        ? (model.story.selectedChapter?.environmentID
+                            ?? model.progress.selectedEnvironmentID)
+                        : model.progress.selectedEnvironmentID,
+
+                    storyEnemies: model.selectedMode == .story
+                        ? model.story.selectedChapter.map {
+                            model.story.enemies(for: $0)
+                        } ?? []
+                        : [],
+
+                    isStoryMode: model.selectedMode == .story
 
                 )
 
@@ -2101,37 +1988,7 @@ private struct ResultStat: View {
 
 }
 
-private struct NeonHeader: View {
-
-    let kicker: String
-
-    let title: LocalizedStringResource
-
-    let icon: String
-
-    var body: some View {
-
-        VStack(spacing: 4) {
-
-            Label(kicker, systemImage: icon)
-
-                .font(.caption.monospaced().weight(.bold))
-
-                .foregroundStyle(StyleTriggerPalette.cyan)
-
-            Text(title)
-
-                .font(.title.monospaced().weight(.black))
-
-                .foregroundStyle(StyleTriggerPalette.silver)
-
-        }
-
-    }
-
-}
-
-private struct StyleTriggerBackground: View {
+struct StyleTriggerBackground: View {
 
     var body: some View {
 

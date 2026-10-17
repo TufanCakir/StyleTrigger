@@ -4,6 +4,7 @@
         "name": "VEX",
         "description": "A precision hunter who cancels attacks into movement.",
         "unlocked": true,
+        "unlockLevel": 1,
         "baseComboList": [
             "razor-chain",
             "sky-trigger",
@@ -46,6 +47,15 @@
         "name": "NYX",
         "description": "A momentum fighter built around aerial redirection.",
         "unlocked": false,
+        "unlockLevel": 10,
+        "unlockLevel": 9,
+        "unlockLevel": 8,
+        "unlockLevel": 7,
+        "unlockLevel": 6,
+        "unlockLevel": 5,
+        "unlockLevel": 4,
+        "unlockLevel": 3,
+        "unlockLevel": 2,
         "baseComboList": [
             "razor-chain",
             "void-step",
@@ -71,7 +81,8 @@
         },
         "compatibleWeaponIDs": [
             "void-fang",
-            "twin-arc"
+            "twin-arc",
+            "standard-sword"
         ],
         "defaultWeaponIDs": [
             "void-fang"
@@ -113,7 +124,8 @@
             "weaponScale": 1.18
         },
         "compatibleWeaponIDs": [
-            "titan-core"
+            "titan-core",
+            "standard-sword"
         ],
         "defaultWeaponIDs": [
             "titan-core"
@@ -154,7 +166,8 @@
             "weaponScale": 0.85
         },
         "compatibleWeaponIDs": [
-            "twin-arc"
+            "twin-arc",
+            "standard-sword"
         ],
         "defaultWeaponIDs": [
             "twin-arc"
@@ -196,7 +209,8 @@
             "weaponScale": 1.12
         },
         "compatibleWeaponIDs": [
-            "impact-gauntlets"
+            "impact-gauntlets",
+            "standard-sword"
         ],
         "defaultWeaponIDs": [
             "impact-gauntlets"
@@ -238,7 +252,8 @@
             "weaponScale": 0.86
         },
         "compatibleWeaponIDs": [
-            "frost-link"
+            "frost-link",
+            "standard-sword"
         ],
         "defaultWeaponIDs": [
             "frost-link"
@@ -280,7 +295,8 @@
             "weaponScale": 0.95
         },
         "compatibleWeaponIDs": [
-            "vector-crossbow"
+            "vector-crossbow",
+            "standard-sword"
         ],
         "defaultWeaponIDs": [
             "vector-crossbow"
@@ -321,7 +337,8 @@
             "weaponScale": 1.08
         },
         "compatibleWeaponIDs": [
-            "sun-katana"
+            "sun-katana",
+            "standard-sword"
         ],
         "defaultWeaponIDs": [
             "sun-katana"
@@ -363,7 +380,8 @@
             "weaponScale": 1.15
         },
         "compatibleWeaponIDs": [
-            "eclipse-scythe"
+            "eclipse-scythe",
+            "standard-sword"
         ],
         "defaultWeaponIDs": [
             "eclipse-scythe"
@@ -405,7 +423,8 @@
             "weaponScale": 1.2
         },
         "compatibleWeaponIDs": [
-            "nova-spear"
+            "nova-spear",
+            "standard-sword"
         ],
         "defaultWeaponIDs": [
             "nova-spear"

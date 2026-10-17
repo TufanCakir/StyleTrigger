@@ -1,0 +1,44 @@
+{
+    "Ten skill-focused battles with fixed encounter rules.":
+        "Zehn anspruchsvolle Kämpfe mit festen Begegnungsregeln.",
+    "Immediate combat with selectable difficulty.":
+        "Sofortiger Kampf mit wählbarer Schwierigkeit.",
+    "Infinite practice with immortal fighters and live combo feedback.":
+        "Endloses Training mit unsterblichen Kämpfern und direktem Combo-Feedback.",
+    "Endless waves with rising speed, aggression, and numbers.":
+        "Endlose Wellen mit steigender Geschwindigkeit, Aggression und Gegnerzahl.",
+    "Fight configurable bots locally or challenge players through Game Center.":
+        "Kämpfe lokal gegen einstellbare Bots oder fordere Spieler über Game Center heraus.",
+    "Time-locked challenge with exclusive cosmetic rewards.":
+        "Zeitlich begrenzte Herausforderung mit exklusiven kosmetischen Belohnungen.",
+    "VOID STEP STRING": "VOID-STEP-COMBO",
+    "Adds the Void Step route to every compatible loadout.":
+        "Fügt jedem kompatiblen Loadout die Void-Step-Route hinzu.",
+    "CROSS BREAK STRING": "CROSS-BREAK-COMBO",
+    "Unlocks the diagonal Cross Break route globally.":
+        "Schaltet die diagonale Cross-Break-Route global frei.",
+    "NOVA LINE STRING": "NOVA-LINE-COMBO",
+    "Unlocks the advanced Nova Line route globally.":
+        "Schaltet die fortgeschrittene Nova-Line-Route global frei.",
+    "REVIVE CORE": "WIEDERBELEBUNGSKERN",
+    "Return after defeat with 50% HP and keep the current encounter.":
+        "Kehre nach einer Niederlage mit 50 % HP in den laufenden Kampf zurück.",
+    "ATTACK AMP": "ANGRIFFS-AMP",
+    "Increases all attack damage for one match.":
+        "Erhöht den gesamten Angriffsschaden für einen Kampf.",
+    "EXP DRIVE": "EP-DRIVE",
+    "Increases character EXP earned after one match.":
+        "Erhöht die nach einem Kampf verdienten Charakter-EP.",
+    "SPEED DRIVE": "SPEED-DRIVE",
+    "Accelerates weapon animations for one match.":
+        "Beschleunigt die Waffenanimationen für einen Kampf.",
+    "STYLE DRIVE": "STYLE-DRIVE",
+    "Increases Style score earned during one match.":
+        "Erhöht die während eines Kampfes verdienten Style-Punkte.",
+    "HP DRIVE": "HP-DRIVE",
+    "Starts the next match with an expanded HP reserve.":
+        "Startet den nächsten Kampf mit einer größeren HP-Reserve.",
+    "WEAPON DRIVE": "WAFFEN-DRIVE",
+    "Boosts weapon-specific damage for one match.":
+        "Erhöht den waffenspezifischen Schaden für einen Kampf."
+}
