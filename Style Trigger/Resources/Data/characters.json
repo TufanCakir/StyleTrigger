@@ -47,14 +47,6 @@
         "name": "NYX",
         "description": "A momentum fighter built around aerial redirection.",
         "unlocked": false,
-        "unlockLevel": 10,
-        "unlockLevel": 9,
-        "unlockLevel": 8,
-        "unlockLevel": 7,
-        "unlockLevel": 6,
-        "unlockLevel": 5,
-        "unlockLevel": 4,
-        "unlockLevel": 3,
         "unlockLevel": 2,
         "baseComboList": [
             "razor-chain",
@@ -100,6 +92,7 @@
         "description":
             "A plated breaker who turns commitment into crushing impact.",
         "unlocked": false,
+        "unlockLevel": 3,
         "baseComboList": [
             "titan-cleave",
             "red-uprising",
@@ -142,6 +135,7 @@
         "name": "ZYRA",
         "description": "A violet duelist who layers alternating blade routes.",
         "unlocked": false,
+        "unlockLevel": 4,
         "baseComboList": [
             "violet-cross",
             "orbit-dance",
@@ -185,6 +179,7 @@
         "description":
             "A close-range brawler built around cancels and counter punches.",
         "unlocked": false,
+        "unlockLevel": 5,
         "baseComboList": [
             "iron-jab",
             "meteor-upper",
@@ -228,6 +223,7 @@
         "description":
             "An ice-fast trick fighter who redirects spinning momentum.",
         "unlocked": false,
+        "unlockLevel": 6,
         "baseComboList": [
             "frost-wheel",
             "chain-current",
@@ -271,6 +267,7 @@
         "description":
             "A tactical marksman who controls space with charged bolts.",
         "unlocked": false,
+        "unlockLevel": 7,
         "baseComboList": [
             "quick-bolt",
             "rail-piercer",
@@ -313,6 +310,7 @@
         "name": "VAEL",
         "description": "An elegant swordsman focused on precise draw attacks.",
         "unlocked": false,
+        "unlockLevel": 8,
         "baseComboList": [
             "golden-draw",
             "moon-divider",
@@ -356,6 +354,7 @@
         "description":
             "A shadow reaper whose wide arcs punish reckless approach.",
         "unlocked": false,
+        "unlockLevel": 9,
         "baseComboList": [
             "grave-arc",
             "night-harvest",
@@ -399,6 +398,7 @@
         "description":
             "A futuristic lancer who links thrusts into aerial pursuit.",
         "unlocked": false,
+        "unlockLevel": 10,
         "baseComboList": [
             "star-thrust",
             "comet-rise",
